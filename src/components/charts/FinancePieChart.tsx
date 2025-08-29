@@ -124,27 +124,27 @@ export const FinancePieChart: React.FC = () => {
           </div>
 
           {/* Financial Summary */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-600 space-y-2">
             <h3 className="font-medium text-gray-900 dark:text-gray-100">Сводка</h3>
             
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Общий доход:</span>
-              <span className="font-medium text-green-600 dark:text-green-400">
+              <span className="font-medium text-green-600">
                 {formatCurrency(data.summary.totalIncome)}
               </span>
             </div>
             
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Общие расходы:</span>
-              <span className="font-medium text-red-600 dark:text-red-400">
+              <span className="font-medium text-red-600">
                 {formatCurrency(data.summary.totalExpenses)}
               </span>
             </div>
             
-            <div className="flex justify-between text-sm pt-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex justify-between text-sm pt-2 border-t border-gray-100 dark:border-gray-600">
               <span className="font-medium text-gray-900 dark:text-gray-100">Чистая прибыль:</span>
               <span className={`font-bold ${
-                data.summary.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                data.summary.netProfit >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {formatCurrency(data.summary.netProfit)}
               </span>

@@ -123,7 +123,6 @@ export const useFinanceBreakdown = () => {
       let query = supabase
         .from('vw_finance_breakdown')
         .select('*')
-        .eq('date_type', filters.dateType)
         .gte('date_msk', formatMoscowDate(filters.dateFrom))
         .lte('date_msk', formatMoscowDate(filters.dateTo))
         .order('date_msk', { ascending: false });

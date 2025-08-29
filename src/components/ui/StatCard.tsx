@@ -48,10 +48,10 @@ export const StatCard: React.FC<StatCardProps> = ({
 
     return (
       <div className={`
-        inline-flex items-center gap-1
-        ${isPositive ? 'change-positive' : ''}
-        ${isNegative ? 'change-negative' : ''}
-        ${isNeutral ? 'change-neutral' : ''}
+        inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium
+        ${isPositive ? 'text-green-600 bg-green-50' : ''}
+        ${isNegative ? 'text-red-600 bg-red-50' : ''}
+        ${isNeutral ? 'text-gray-600 bg-gray-50' : ''}
       `}>
         {isPositive && <TrendingUp className="w-3 h-3" />}
         {isNegative && <TrendingDown className="w-3 h-3" />}
@@ -66,11 +66,11 @@ export const StatCard: React.FC<StatCardProps> = ({
       <div className="stat-card">
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-            {icon && <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>}
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            {icon && <div className="w-5 h-5 bg-gray-200 rounded"></div>}
           </div>
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2"></div>
-          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+          <div className="h-8 bg-gray-200 rounded w-32 mb-2"></div>
+          <div className="h-5 bg-gray-200 rounded w-16"></div>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ export const StatCard: React.FC<StatCardProps> = ({
     <div className="stat-card">
       <div className="flex items-center justify-between mb-2">
         <h3 className="metric-label">{title}</h3>
-        {icon && <div className="text-gray-400 dark:text-gray-500">{icon}</div>}
+        {icon && <div className="text-gray-400">{icon}</div>}
       </div>
       
       <div className="metric-value mb-2">
