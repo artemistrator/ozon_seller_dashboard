@@ -6,8 +6,7 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from 'recharts';
 import { useDailySales } from '../../hooks/useSalesData';
 import { formatCurrency, formatNumber } from '../../lib/format';

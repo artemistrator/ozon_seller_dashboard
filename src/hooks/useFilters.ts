@@ -32,7 +32,7 @@ export const useFilters = () => {
     const dateToParam = searchParams.get('to');
     const skuParam = searchParams.get('sku') || '';
     const regionParam = searchParams.get('region') || '';
-    const dateTypeParam = searchParams.get('dateType') || 'delivering_date';
+    const dateTypeParam = searchParams.get('dateType') || 'shipment_date';
 
     let dateFrom = defaultRange.from;
     let dateTo = defaultRange.to;
@@ -60,7 +60,7 @@ export const useFilters = () => {
       region: regionParam,
       dateType: (dateTypeParam === 'delivering_date' || dateTypeParam === 'shipment_date' || dateTypeParam === 'in_process_at') 
         ? dateTypeParam as 'delivering_date' | 'shipment_date' | 'in_process_at'
-        : 'delivering_date',
+        : 'shipment_date',
     };
   }, [searchParams]);
 

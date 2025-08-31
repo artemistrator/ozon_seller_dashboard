@@ -1,4 +1,4 @@
-import { format, subDays, startOfDay, endOfDay, differenceInDays } from 'date-fns';
+import { subDays, startOfDay, endOfDay, differenceInDays } from 'date-fns';
 import { zonedTimeToUtc, utcToZonedTime, format as formatTz } from 'date-fns-tz';
 
 const MOSCOW_TZ = 'Europe/Moscow';
@@ -70,6 +70,38 @@ export const calculateChange = (current: number, previous: number): {
     percentage,
     trend: value > 0 ? 'up' : value < 0 ? 'down' : 'neutral',
   };
+};
+
+/**
+ * Format date range for database queries, handling single-day periods properly
+ * For single-day periods, uses timezone-aware start and end of day boundaries
+ */
+export const formatDateRangeForQuery = (dateFrom: Date, dateTo: Date): {
+  start_date: string;
+  end_date: string;
+} => {
+  const moscowFrom = toMoscowTime(dateFrom);
+  const moscowTo = toMoscowTime(dateTo);
+  
+  // Check if it's a single day period
+  const isSingleDay = formatMoscowDate(moscowFrom) === formatMoscowDate(moscowTo);
+  
+  if (isSingleDay) {
+    // For single-day periods, use start and end of day boundaries in Moscow time
+    const dayStart = startOfDay(moscowFrom);
+    const dayEnd = endOfDay(moscowTo);
+    
+    return {
+      start_date: formatTz(dayStart, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx", { timeZone: MOSCOW_TZ }),
+      end_date: formatTz(dayEnd, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx", { timeZone: MOSCOW_TZ })
+    };
+  } else {
+    // For multi-day periods, use the standard date formatting
+    return {
+      start_date: formatMoscowDate(moscowFrom),
+      end_date: formatMoscowDate(moscowTo)
+    };
+  }
 };
 
 /**

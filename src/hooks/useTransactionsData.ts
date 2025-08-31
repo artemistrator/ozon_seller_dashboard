@@ -101,20 +101,20 @@ export const useTransactionsData = (tableState: TransactionsTableState) => {
         query = query.eq('item_sku', parseInt(filters.sku));
       }
 
-      // Apply region filter (need to join with postings)
-      if (filters.region) {
-        const { data: postings } = await supabase
-          .from('postings_fbs')
-          .select('posting_number')
-          .ilike('cluster_to', `%${filters.region}%`);
-        
-        if (postings && postings.length > 0) {
-          const postingNumbers = postings.map(p => p.posting_number).filter(Boolean);
-          if (postingNumbers.length > 0) {
-            query = query.in('posting_number', postingNumbers);
-          }
-        }
-      }
+      // Apply region filter (temporarily disabled - need to verify postings table structure)
+      // if (filters.region) {
+      //   const { data: postings } = await supabase
+      //     .from('postings')
+      //     .select('posting_number')
+      //     .ilike('cluster_to', `%${filters.region}%`);
+      //   
+      //   if (postings && postings.length > 0) {
+      //     const postingNumbers = postings.map(p => p.posting_number).filter(Boolean);
+      //     if (postingNumbers.length > 0) {
+      //       query = query.in('posting_number', postingNumbers);
+      //     }
+      //   }
+      // }
 
       // Apply sorting
       query = query.order(tableState.sortBy, { ascending: tableState.sortOrder === 'asc' });

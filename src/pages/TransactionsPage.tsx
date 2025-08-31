@@ -18,7 +18,7 @@ const getCategoryColor = (category: string): string => {
     returns: 'bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300',
     ads: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-300',
     services: 'bg-lime-100 dark:bg-lime-900/30 text-lime-800 dark:text-lime-300',
-    other: 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300',
+    other: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300',
   };
   return colors[category] || colors.other;
 };
@@ -178,7 +178,7 @@ export const TransactionsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center gap-3">
-            <FileText className="w-8 h-8 text-blue-600" />
+            <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             <div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {formatNumber(tableData?.totalCount || 0)}
@@ -190,7 +190,7 @@ export const TransactionsPage: React.FC = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center gap-3">
-            <Hash className="w-8 h-8 text-green-600" />
+            <Hash className="w-8 h-8 text-green-600 dark:text-green-400" />
             <div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {formatNumber(categories?.length || 0)}
@@ -202,7 +202,7 @@ export const TransactionsPage: React.FC = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-purple-600" />
+            <Calendar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
             <div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {tableState.pageSize}
@@ -214,7 +214,7 @@ export const TransactionsPage: React.FC = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-orange-600" />
+            <DollarSign className="w-8 h-8 text-orange-600 dark:text-orange-400" />
             <div>
               <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {tableState.search ? 'Поиск' : 'Все'}

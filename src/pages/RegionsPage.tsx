@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, TrendingUp, ShoppingCart, DollarSign, Award } from 'lucide-react';
+import { MapPin, ShoppingCart, DollarSign, Award } from 'lucide-react';
 import { StatCard } from '../components/ui/StatCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
