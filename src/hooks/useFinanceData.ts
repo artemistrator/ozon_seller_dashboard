@@ -169,26 +169,29 @@ export const useFinanceData = () => {
         console.log('Using RPC function data:', rpcData);
         
         const item = rpcData[0];
+        
+        // Map the correct field names from RPC function
+        // The RPC function returns different field names than expected
         const summary: FinanceSummary = {
-          sales: toNumber(item.sales),
-          commissions: toNumber(item.commissions),
-          delivery: toNumber(item.delivery),
-          returns: toNumber(item.returns),
-          ads: toNumber(item.ads),
-          services: toNumber(item.services),
-          totalIncome: toNumber(item.total_income),
-          totalExpenses: toNumber(item.total_expenses),
-          netProfit: toNumber(item.net_profit),
+          sales: toNumber(item.revenue || item.sales), // revenue or sales
+          commissions: toNumber(item.commission || item.commissions), // commission or commissions
+          delivery: toNumber(item.delivery_cost || item.delivery), // delivery_cost or delivery
+          returns: toNumber(item.returns_cost || item.returns), // returns_cost or returns
+          ads: toNumber(item.ads_cost || item.ads), // ads_cost or ads
+          services: toNumber(item.services_cost || item.services), // services_cost or services
+          totalIncome: toNumber(item.payout || item.total_income), // payout or total_income
+          totalExpenses: toNumber(item.total_expenses || 0), // total_expenses
+          netProfit: toNumber(item.net_profit || 0), // net_profit
         };
         
         // Calculate category data for the pie chart
         const categoryData = {
-          sales: toNumber(item.sales),
-          commissions: toNumber(item.commissions),
-          delivery: toNumber(item.delivery),
-          returns: toNumber(item.returns),
-          ads: toNumber(item.ads),
-          services: toNumber(item.services),
+          sales: summary.sales,
+          commissions: summary.commissions,
+          delivery: summary.delivery,
+          returns: summary.returns,
+          ads: summary.ads,
+          services: summary.services,
         };
         
         const categories: FinanceCategory[] = Object.entries(categoryData)
@@ -262,13 +265,13 @@ export const useFinanceBreakdown = () => {
           return [{
             date_msk: formatMoscowDate(filters.dateFrom),
             posting_number: 'SUMMARY',
-            sales: toNumber(item.sales),
-            commissions: toNumber(item.commissions),
-            delivery: toNumber(item.delivery),
-            returns: toNumber(item.returns),
-            ads: toNumber(item.ads),
-            services: toNumber(item.services),
-            net_profit: toNumber(item.net_profit),
+            sales: toNumber(item.revenue || item.sales),
+            commissions: toNumber(item.commission || item.commissions),
+            delivery: toNumber(item.delivery_cost || item.delivery),
+            returns: toNumber(item.returns_cost || item.returns),
+            ads: toNumber(item.ads_cost || item.ads),
+            services: toNumber(item.services_cost || item.services),
+            net_profit: toNumber(item.net_profit || 0),
             operation_type: 'Сводка',
           }];
         }
