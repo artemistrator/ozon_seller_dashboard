@@ -74,20 +74,39 @@ export const useFinanceData = () => {
       });
       
       try {
-        // First, let's check if we can query the table directly
+        // First, let's check if we can query the existing tables directly
         console.log('Trying direct table query first...');
-        const { data: directData, error: directError } = await supabase
-          .from('postings_fbs')
-          .select('order_id, status, price_total, payout, commission_amount, shipment_date')
-          .gte('shipment_date', formatMoscowDate(filters.dateFrom))
-          .lte('shipment_date', formatMoscowDate(filters.dateTo))
+        
+        // Query postings table for delivered orders
+        const { data: postingsData, error: postingsError } = await supabase
+          .from('postings')
+          .select('id, posting_number, status, qty, price, payout, commission_product, order_date')
+          .gte('order_date', formatMoscowDate(filters.dateFrom))
+          .lte('order_date', formatMoscowDate(filters.dateTo))
           .eq('status', 'delivered');
         
-        console.log('Direct table query result:', { data: directData, error: directError });
+        console.log('Postings table query result:', { data: postingsData, error: postingsError });
         
-        if (directData && directData.length > 0) {
-          console.log('Found', directData.length, 'delivered orders in period');
-          console.log('Sample order:', directData[0]);
+        // Query transactions table for financial data
+        const { data: transactionsData, error: transactionsError } = await supabase
+          .from('transactions')
+          .select('id, posting_number, operation_type, operation_type_name, operation_date, amount, type')
+          .gte('operation_date', formatMoscowDate(filters.dateFrom))
+          .lte('operation_date', formatMoscowDate(filters.dateTo));
+        
+        console.log('Transactions table query result:', { data: transactionsData, error: transactionsError });
+        
+        // Query transaction_services table for service costs
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('transaction_services')
+          .select('id, operation_id, name, price')
+          .gte('id', 1); // We'll filter by operation_id later
+        
+        console.log('Transaction services query result:', { data: servicesData, error: servicesError });
+        
+        if (postingsData && postingsData.length > 0) {
+          console.log('Found', postingsData.length, 'delivered orders in period');
+          console.log('Sample order:', postingsData[0]);
         } else {
           console.log('No delivered orders found in period');
         }
@@ -96,22 +115,48 @@ export const useFinanceData = () => {
         const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
         console.log('Is single day period:', isSingleDay);
         
-        // For single day periods, RPC function might not work properly
-        // So we'll use direct calculation for better reliability
-        if (isSingleDay && directData && directData.length > 0) {
-          console.log('Single day period detected, using direct calculation for reliability');
+        // Calculate finance data from existing tables
+        if (postingsData && postingsData.length > 0) {
+          console.log('Calculating finance data from existing tables...');
           
-          const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
-          const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
+          // Calculate sales (payout from delivered orders)
+          const sales = postingsData.reduce((sum, item) => {
+            const payout = toNumber(item.payout) || 0;
+            const qty = toNumber(item.qty) || 1;
+            return sum + (payout * qty);
+          }, 0);
+          
+          // Calculate commissions
+          const commissions = postingsData.reduce((sum, item) => {
+            const commission = toNumber(item.commission_product) || 0;
+            const qty = toNumber(item.qty) || 1;
+            return sum + (commission * qty);
+          }, 0);
+          
+          // Calculate delivery costs (estimate 8% of sales)
           const delivery = sales * 0.08;
+          
+          // Calculate returns (estimate 2% of sales)
           const returns = sales * 0.02;
+          
+          // Calculate ads costs (estimate 3% of sales)
           const ads = sales * 0.03;
-          const services = sales * 0.05;
+          
+          // Calculate services costs from transaction_services
+          let services = 0;
+          if (servicesData && servicesData.length > 0 && transactionsData) {
+            // Get operation_ids from transactions in the period
+            const operationIds = transactionsData.map((t: any) => t.id);
+            services = servicesData
+              .filter((s: any) => operationIds.includes(s.operation_id))
+              .reduce((sum, s: any) => sum + toNumber(s.price || 0), 0);
+          }
+          
           const totalIncome = sales;
           const totalExpenses = commissions + delivery + returns + ads + services;
           const netProfit = totalIncome - totalExpenses;
           
-          console.log('Direct calculation result for single day:', {
+          console.log('Calculated finance data:', {
             sales, commissions, delivery, returns, ads, services,
             totalIncome, totalExpenses, netProfit
           });
@@ -135,158 +180,22 @@ export const useFinanceData = () => {
           return { summary, categories };
         }
         
-        // Now try RPC function for multi-day periods
-        console.log('Trying RPC function...');
-        const { data: rpcData, error: rpcError } = await supabase.rpc('get_finance_summary', {
-          start_date: formatMoscowDate(filters.dateFrom),
-          end_date: formatMoscowDate(filters.dateTo),
-          date_type: filters.dateType,
-          sku_filter: filters.sku ? parseInt(filters.sku) : null,
-          region_filter: filters.region || null,
-        });
-        
-        console.log('RPC function result:', { data: rpcData, error: rpcError });
-        
-        if (rpcError) {
-          console.error('RPC function error:', rpcError);
-          console.log('Falling back to manual calculation...');
-          
-          // Manual calculation fallback
-          if (directData && directData.length > 0) {
-            const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
-            const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
-            const delivery = sales * 0.08;
-            const returns = sales * 0.02;
-            const ads = sales * 0.03;
-            const services = sales * 0.05;
-            const totalIncome = sales;
-            const totalExpenses = commissions + delivery + returns + ads + services;
-            const netProfit = totalIncome - totalExpenses;
-            
-            console.log('Manual calculation result:', {
-              sales, commissions, delivery, returns, ads, services,
-              totalIncome, totalExpenses, netProfit
-            });
-            
-            const summary: FinanceSummary = {
-              sales, commissions, delivery, returns, ads, services,
-              totalIncome, totalExpenses, netProfit
-            };
-            
-            const categoryData = { sales, commissions, delivery, returns, ads, services };
-            const categories: FinanceCategory[] = Object.entries(categoryData)
-              .filter(([, value]) => value > 0)
-              .map(([key, amount]) => ({
-                category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
-                amount,
-                percentage: totalIncome > 0 ? Math.round((amount / totalIncome) * 100) : 0,
-                color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
-              }))
-              .sort((a, b) => b.amount - a.amount);
-            
-            return { summary, categories };
-          }
-          
-          throw rpcError;
-        }
-        
-        if (!rpcData || rpcData.length === 0) {
-          console.log('No data from RPC function');
-          
-          // If RPC returns no data but we have direct data, use direct calculation
-          if (directData && directData.length > 0) {
-            console.log('RPC returned no data, using direct calculation fallback');
-            
-            const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
-            const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
-            const delivery = sales * 0.08;
-            const returns = sales * 0.02;
-            const ads = sales * 0.03;
-            const services = sales * 0.05;
-            const totalIncome = sales;
-            const totalExpenses = commissions + delivery + returns + ads + services;
-            const netProfit = totalIncome - totalExpenses;
-            
-            console.log('Direct calculation fallback result:', {
-              sales, commissions, delivery, returns, ads, services,
-              totalIncome, totalExpenses, netProfit
-            });
-            
-            const summary: FinanceSummary = {
-              sales, commissions, delivery, returns, ads, services,
-              totalIncome, totalExpenses, netProfit
-            };
-            
-            const categoryData = { sales, commissions, delivery, returns, ads, services };
-            const categories: FinanceCategory[] = Object.entries(categoryData)
-              .filter(([, value]) => value > 0)
-              .map(([key, amount]) => ({
-                category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
-                amount,
-                percentage: totalIncome > 0 ? Math.round((amount / totalIncome) * 100) : 0,
-                color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
-              }))
-              .sort((a, b) => b.amount - a.amount);
-            
-            return { summary, categories };
-          }
-          
-          // Return empty data
-          return {
-            summary: {
-              sales: 0,
-              commissions: 0,
-              delivery: 0,
-              returns: 0,
-              ads: 0,
-              services: 0,
-              totalIncome: 0,
-              totalExpenses: 0,
-              netProfit: 0,
-            },
-            categories: []
-          };
-        }
-        
-        console.log('Using RPC function data:', rpcData);
-        
-        const item = rpcData[0];
-        
-        // Map the correct field names from RPC function
-        // The RPC function returns different field names than expected
-        const summary: FinanceSummary = {
-          sales: toNumber(item.revenue || item.sales), // revenue or sales
-          commissions: toNumber(item.commission || item.commissions), // commission or commissions
-          delivery: toNumber(item.delivery_cost || item.delivery), // delivery_cost or delivery
-          returns: toNumber(item.returns_cost || item.returns), // returns_cost or returns
-          ads: toNumber(item.ads_cost || item.ads), // ads_cost or ads
-          services: toNumber(item.services_cost || item.services), // services_cost or services
-          totalIncome: toNumber(item.payout || item.total_income), // payout or total_income
-          totalExpenses: toNumber(item.total_expenses || 0), // total_expenses
-          netProfit: toNumber(item.net_profit || 0), // net_profit
+        // If no data from existing tables, return empty data
+        console.log('No data available from existing tables');
+        return {
+          summary: {
+            sales: 0,
+            commissions: 0,
+            delivery: 0,
+            returns: 0,
+            ads: 0,
+            services: 0,
+            totalIncome: 0,
+            totalExpenses: 0,
+            netProfit: 0,
+          },
+          categories: []
         };
-        
-        // Calculate category data for the pie chart
-        const categoryData = {
-          sales: summary.sales,
-          commissions: summary.commissions,
-          delivery: summary.delivery,
-          returns: summary.returns,
-          ads: summary.ads,
-          services: summary.services,
-        };
-        
-        const categories: FinanceCategory[] = Object.entries(categoryData)
-          .filter(([, value]) => value > 0)
-          .map(([key, amount]) => ({
-            category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
-            amount,
-            percentage: summary.totalIncome > 0 ? Math.round((amount / summary.totalIncome) * 100) : 0,
-            color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
-          }))
-          .sort((a, b) => b.amount - a.amount);
-        
-        return { summary, categories };
         
       } catch (error) {
         console.error('Error in finance data fetching:', error);
@@ -321,30 +230,65 @@ export const useFinanceBreakdown = () => {
       console.log('Filters received:', filters);
       
       try {
-        // First try direct table query as fallback
-        const { data: directData, error: directError } = await supabase
-          .from('postings_fbs')
-          .select('order_id, status, price_total, payout, commission_amount, shipment_date')
-          .gte('shipment_date', formatMoscowDate(filters.dateFrom))
-          .lte('shipment_date', formatMoscowDate(filters.dateTo))
+        // Query existing tables for breakdown data
+        const { data: postingsData, error: postingsError } = await supabase
+          .from('postings')
+          .select('id, posting_number, status, qty, price, payout, commission_product, order_date')
+          .gte('order_date', formatMoscowDate(filters.dateFrom))
+          .lte('order_date', formatMoscowDate(filters.dateTo))
           .eq('status', 'delivered');
         
-        console.log('Direct table query for breakdown:', { data: directData, error: directError });
+        console.log('Postings table for breakdown:', { data: postingsData, error: postingsError });
+        
+        const { data: transactionsData, error: transactionsError } = await supabase
+          .from('transactions')
+          .select('id, posting_number, operation_type, operation_type_name, operation_date, amount, type')
+          .gte('operation_date', formatMoscowDate(filters.dateFrom))
+          .lte('operation_date', formatMoscowDate(filters.dateTo));
+        
+        console.log('Transactions table for breakdown:', { data: transactionsData, error: transactionsError });
+        
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('transaction_services')
+          .select('id, operation_id, name, price')
+          .gte('id', 1);
+        
+        console.log('Transaction services for breakdown:', { data: servicesData, error: servicesError });
         
         // Check if it's a single day period
         const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
         console.log('Is single day period for breakdown:', isSingleDay);
         
-        // For single day periods, use direct calculation for better reliability
-        if (isSingleDay && directData && directData.length > 0) {
-          console.log('Single day period detected for breakdown, using direct calculation');
+        // Create breakdown from existing table data
+        if (postingsData && postingsData.length > 0) {
+          console.log('Creating breakdown from existing table data');
           
-          const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
-          const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
+          // Calculate finance metrics
+          const sales = postingsData.reduce((sum, item) => {
+            const payout = toNumber(item.payout) || 0;
+            const qty = toNumber(item.qty) || 1;
+            return sum + (payout * qty);
+          }, 0);
+          
+          const commissions = postingsData.reduce((sum, item) => {
+            const commission = toNumber(item.commission_product) || 0;
+            const qty = toNumber(item.qty) || 1;
+            return sum + (commission * qty);
+          }, 0);
+          
           const delivery = sales * 0.08;
           const returns = sales * 0.02;
           const ads = sales * 0.03;
-          const services = sales * 0.05;
+          
+          // Calculate services from transaction_services
+          let services = 0;
+          if (servicesData && servicesData.length > 0 && transactionsData) {
+            const operationIds = transactionsData.map((t: any) => t.id);
+            services = servicesData
+              .filter((s: any) => operationIds.includes(s.operation_id))
+              .reduce((sum, s: any) => sum + toNumber(s.price || 0), 0);
+          }
+          
           const netProfit = sales - (commissions + delivery + returns + ads + services);
           
           return [{
@@ -357,60 +301,7 @@ export const useFinanceBreakdown = () => {
             ads,
             services,
             net_profit: netProfit,
-            operation_type: 'Сводка (один день)',
-          }];
-        }
-        
-        // Try to get detailed breakdown data from RPC function for multi-day periods
-        const { data: rpcData, error: rpcError } = await supabase.rpc('get_finance_summary', {
-          start_date: formatMoscowDate(filters.dateFrom),
-          end_date: formatMoscowDate(filters.dateTo),
-          date_type: filters.dateType,
-          sku_filter: filters.sku ? parseInt(filters.sku) : null,
-          region_filter: filters.region || null,
-        });
-        
-        if (!rpcError && rpcData && rpcData.length > 0) {
-          console.log('Using RPC function for breakdown');
-          const item = rpcData[0];
-          
-          return [{
-            date_msk: formatMoscowDate(filters.dateFrom),
-            posting_number: 'SUMMARY',
-            sales: toNumber(item.revenue || item.sales),
-            commissions: toNumber(item.commission || item.commissions),
-            delivery: toNumber(item.delivery_cost || item.delivery),
-            returns: toNumber(item.returns_cost || item.returns),
-            ads: toNumber(item.ads_cost || item.ads),
-            services: toNumber(item.services_cost || item.services),
-            net_profit: toNumber(item.net_profit || 0),
-            operation_type: 'Сводка',
-          }];
-        }
-        
-        // If RPC fails but we have direct data, create breakdown from it
-        if (directData && directData.length > 0) {
-          console.log('Creating breakdown from direct table data');
-          
-          const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
-          const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
-          const delivery = sales * 0.08;
-          const returns = sales * 0.02;
-          const ads = sales * 0.03;
-          const services = sales * 0.05;
-          const netProfit = sales - (commissions + delivery + returns + ads + services);
-          
-          return [{
-            date_msk: formatMoscowDate(filters.dateFrom),
-            posting_number: 'SUMMARY',
-            sales,
-            commissions,
-            delivery,
-            returns,
-            ads,
-            services,
-            net_profit: netProfit,
-            operation_type: 'Сводка (прямые данные)',
+            operation_type: isSingleDay ? 'Сводка (один день)' : 'Сводка (существующие данные)',
           }];
         }
         
