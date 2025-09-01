@@ -77,32 +77,24 @@ export const useFinanceData = () => {
         // First, let's check if we can query the existing tables directly
         console.log('Trying direct table query first...');
         
-        // Query postings table for delivered orders
+        // Query postings_fbs table for delivered orders (same as useSalesData)
         const { data: postingsData, error: postingsError } = await supabase
-          .from('postings')
-          .select('id, posting_number, status, qty, price, payout, commission_product, order_date')
-          .gte('order_date', formatMoscowDate(filters.dateFrom))
-          .lte('order_date', formatMoscowDate(filters.dateTo))
+          .from('postings_fbs')
+          .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+          .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
+          .lte(filters.dateType, formatMoscowDate(filters.dateTo))
           .eq('status', 'delivered');
         
-        console.log('Postings table query result:', { data: postingsData, error: postingsError });
+        console.log('Postings_fbs table query result:', { data: postingsData, error: postingsError });
         
-        // Query transactions table for financial data
+        // Query vw_transaction_details table for financial data (same as useTransactionsData)
         const { data: transactionsData, error: transactionsError } = await supabase
-          .from('transactions')
-          .select('id, posting_number, operation_type, operation_type_name, operation_date, amount, type')
-          .gte('operation_date', formatMoscowDate(filters.dateFrom))
-          .lte('operation_date', formatMoscowDate(filters.dateTo));
+          .from('vw_transaction_details')
+          .select('*')
+          .gte('operation_date_msk', formatMoscowDate(filters.dateFrom))
+          .lte('operation_date_msk', formatMoscowDate(filters.dateTo));
         
-        console.log('Transactions table query result:', { data: transactionsData, error: transactionsError });
-        
-        // Query transaction_services table for service costs
-        const { data: servicesData, error: servicesError } = await supabase
-          .from('transaction_services')
-          .select('id, operation_id, name, price')
-          .gte('id', 1); // We'll filter by operation_id later
-        
-        console.log('Transaction services query result:', { data: servicesData, error: servicesError });
+        console.log('vw_transaction_details query result:', { data: transactionsData, error: transactionsError });
         
         if (postingsData && postingsData.length > 0) {
           console.log('Found', postingsData.length, 'delivered orders in period');
@@ -122,15 +114,15 @@ export const useFinanceData = () => {
           // Calculate sales (payout from delivered orders)
           const sales = postingsData.reduce((sum, item) => {
             const payout = toNumber(item.payout) || 0;
-            const qty = toNumber(item.qty) || 1;
-            return sum + (payout * qty);
+            const quantity = toNumber(item.quantity) || 1;
+            return sum + (payout * quantity);
           }, 0);
           
           // Calculate commissions
           const commissions = postingsData.reduce((sum, item) => {
-            const commission = toNumber(item.commission_product) || 0;
-            const qty = toNumber(item.qty) || 1;
-            return sum + (commission * qty);
+            const commission = toNumber(item.commission_amount) || 0;
+            const quantity = toNumber(item.quantity) || 1;
+            return sum + (commission * quantity);
           }, 0);
           
           // Calculate delivery costs (estimate 8% of sales)
@@ -142,14 +134,14 @@ export const useFinanceData = () => {
           // Calculate ads costs (estimate 3% of sales)
           const ads = sales * 0.03;
           
-          // Calculate services costs from transaction_services
+          // Calculate services costs from vw_transaction_details
           let services = 0;
-          if (servicesData && servicesData.length > 0 && transactionsData) {
-            // Get operation_ids from transactions in the period
-            const operationIds = transactionsData.map((t: any) => t.id);
-            services = servicesData
-              .filter((s: any) => operationIds.includes(s.operation_id))
-              .reduce((sum, s: any) => sum + toNumber(s.price || 0), 0);
+          if (transactionsData && transactionsData.length > 0) {
+            // Filter for service transactions
+            const serviceTransactions = transactionsData.filter((t: any) => 
+              t.category === 'services' || t.operation_type_name?.toLowerCase().includes('service')
+            );
+            services = serviceTransactions.reduce((sum, t: any) => sum + toNumber(t.amount || 0), 0);
           }
           
           const totalIncome = sales;
@@ -232,28 +224,21 @@ export const useFinanceBreakdown = () => {
       try {
         // Query existing tables for breakdown data
         const { data: postingsData, error: postingsError } = await supabase
-          .from('postings')
-          .select('id, posting_number, status, qty, price, payout, commission_product, order_date')
-          .gte('order_date', formatMoscowDate(filters.dateFrom))
-          .lte('order_date', formatMoscowDate(filters.dateTo))
+          .from('postings_fbs')
+          .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+          .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
+          .lte(filters.dateType, formatMoscowDate(filters.dateTo))
           .eq('status', 'delivered');
         
-        console.log('Postings table for breakdown:', { data: postingsData, error: postingsError });
+        console.log('Postings_fbs table for breakdown:', { data: postingsData, error: postingsError });
         
         const { data: transactionsData, error: transactionsError } = await supabase
-          .from('transactions')
-          .select('id, posting_number, operation_type, operation_type_name, operation_date, amount, type')
-          .gte('operation_date', formatMoscowDate(filters.dateFrom))
-          .lte('operation_date', formatMoscowDate(filters.dateTo));
+          .from('vw_transaction_details')
+          .select('*')
+          .gte('operation_date_msk', formatMoscowDate(filters.dateFrom))
+          .lte('operation_date_msk', formatMoscowDate(filters.dateTo));
         
-        console.log('Transactions table for breakdown:', { data: transactionsData, error: transactionsError });
-        
-        const { data: servicesData, error: servicesError } = await supabase
-          .from('transaction_services')
-          .select('id, operation_id, name, price')
-          .gte('id', 1);
-        
-        console.log('Transaction services for breakdown:', { data: servicesData, error: servicesError });
+        console.log('vw_transaction_details for breakdown:', { data: transactionsData, error: transactionsError });
         
         // Check if it's a single day period
         const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
@@ -266,27 +251,27 @@ export const useFinanceBreakdown = () => {
           // Calculate finance metrics
           const sales = postingsData.reduce((sum, item) => {
             const payout = toNumber(item.payout) || 0;
-            const qty = toNumber(item.qty) || 1;
-            return sum + (payout * qty);
+            const quantity = toNumber(item.quantity) || 1;
+            return sum + (payout * quantity);
           }, 0);
           
           const commissions = postingsData.reduce((sum, item) => {
-            const commission = toNumber(item.commission_product) || 0;
-            const qty = toNumber(item.qty) || 1;
-            return sum + (commission * qty);
+            const commission = toNumber(item.commission_amount) || 0;
+            const quantity = toNumber(item.quantity) || 1;
+            return sum + (commission * quantity);
           }, 0);
           
           const delivery = sales * 0.08;
           const returns = sales * 0.02;
           const ads = sales * 0.03;
           
-          // Calculate services from transaction_services
+          // Calculate services from vw_transaction_details
           let services = 0;
-          if (servicesData && servicesData.length > 0 && transactionsData) {
-            const operationIds = transactionsData.map((t: any) => t.id);
-            services = servicesData
-              .filter((s: any) => operationIds.includes(s.operation_id))
-              .reduce((sum, s: any) => sum + toNumber(s.price || 0), 0);
+          if (transactionsData && transactionsData.length > 0) {
+            const serviceTransactions = transactionsData.filter((t: any) => 
+              t.category === 'services' || t.operation_type_name?.toLowerCase().includes('service')
+            );
+            services = serviceTransactions.reduce((sum, t: any) => sum + toNumber(t.amount || 0), 0);
           }
           
           const netProfit = sales - (commissions + delivery + returns + ads + services);
