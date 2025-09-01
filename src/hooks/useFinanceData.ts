@@ -92,7 +92,50 @@ export const useFinanceData = () => {
           console.log('No delivered orders found in period');
         }
         
-        // Now try RPC function
+        // Check if it's a single day period
+        const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
+        console.log('Is single day period:', isSingleDay);
+        
+        // For single day periods, RPC function might not work properly
+        // So we'll use direct calculation for better reliability
+        if (isSingleDay && directData && directData.length > 0) {
+          console.log('Single day period detected, using direct calculation for reliability');
+          
+          const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
+          const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
+          const delivery = sales * 0.08;
+          const returns = sales * 0.02;
+          const ads = sales * 0.03;
+          const services = sales * 0.05;
+          const totalIncome = sales;
+          const totalExpenses = commissions + delivery + returns + ads + services;
+          const netProfit = totalIncome - totalExpenses;
+          
+          console.log('Direct calculation result for single day:', {
+            sales, commissions, delivery, returns, ads, services,
+            totalIncome, totalExpenses, netProfit
+          });
+          
+          const summary: FinanceSummary = {
+            sales, commissions, delivery, returns, ads, services,
+            totalIncome, totalExpenses, netProfit
+          };
+          
+          const categoryData = { sales, commissions, delivery, returns, ads, services };
+          const categories: FinanceCategory[] = Object.entries(categoryData)
+            .filter(([, value]) => value > 0)
+            .map(([key, amount]) => ({
+              category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
+              amount,
+              percentage: totalIncome > 0 ? Math.round((amount / totalIncome) * 100) : 0,
+              color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
+            }))
+            .sort((a, b) => b.amount - a.amount);
+          
+          return { summary, categories };
+        }
+        
+        // Now try RPC function for multi-day periods
         console.log('Trying RPC function...');
         const { data: rpcData, error: rpcError } = await supabase.rpc('get_finance_summary', {
           start_date: formatMoscowDate(filters.dateFrom),
@@ -149,6 +192,45 @@ export const useFinanceData = () => {
         
         if (!rpcData || rpcData.length === 0) {
           console.log('No data from RPC function');
+          
+          // If RPC returns no data but we have direct data, use direct calculation
+          if (directData && directData.length > 0) {
+            console.log('RPC returned no data, using direct calculation fallback');
+            
+            const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
+            const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
+            const delivery = sales * 0.08;
+            const returns = sales * 0.02;
+            const ads = sales * 0.03;
+            const services = sales * 0.05;
+            const totalIncome = sales;
+            const totalExpenses = commissions + delivery + returns + ads + services;
+            const netProfit = totalIncome - totalExpenses;
+            
+            console.log('Direct calculation fallback result:', {
+              sales, commissions, delivery, returns, ads, services,
+              totalIncome, totalExpenses, netProfit
+            });
+            
+            const summary: FinanceSummary = {
+              sales, commissions, delivery, returns, ads, services,
+              totalIncome, totalExpenses, netProfit
+            };
+            
+            const categoryData = { sales, commissions, delivery, returns, ads, services };
+            const categories: FinanceCategory[] = Object.entries(categoryData)
+              .filter(([, value]) => value > 0)
+              .map(([key, amount]) => ({
+                category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
+                amount,
+                percentage: totalIncome > 0 ? Math.round((amount / totalIncome) * 100) : 0,
+                color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
+              }))
+              .sort((a, b) => b.amount - a.amount);
+            
+            return { summary, categories };
+          }
+          
           // Return empty data
           return {
             summary: {
@@ -249,7 +331,37 @@ export const useFinanceBreakdown = () => {
         
         console.log('Direct table query for breakdown:', { data: directData, error: directError });
         
-        // Try to get detailed breakdown data from RPC function
+        // Check if it's a single day period
+        const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
+        console.log('Is single day period for breakdown:', isSingleDay);
+        
+        // For single day periods, use direct calculation for better reliability
+        if (isSingleDay && directData && directData.length > 0) {
+          console.log('Single day period detected for breakdown, using direct calculation');
+          
+          const sales = directData.reduce((sum, item) => sum + toNumber(item.payout), 0);
+          const commissions = directData.reduce((sum, item) => sum + toNumber(item.commission_amount), 0);
+          const delivery = sales * 0.08;
+          const returns = sales * 0.02;
+          const ads = sales * 0.03;
+          const services = sales * 0.05;
+          const netProfit = sales - (commissions + delivery + returns + ads + services);
+          
+          return [{
+            date_msk: formatMoscowDate(filters.dateFrom),
+            posting_number: 'SUMMARY',
+            sales,
+            commissions,
+            delivery,
+            returns,
+            ads,
+            services,
+            net_profit: netProfit,
+            operation_type: 'Сводка (один день)',
+          }];
+        }
+        
+        // Try to get detailed breakdown data from RPC function for multi-day periods
         const { data: rpcData, error: rpcError } = await supabase.rpc('get_finance_summary', {
           start_date: formatMoscowDate(filters.dateFrom),
           end_date: formatMoscowDate(filters.dateTo),
