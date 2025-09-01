@@ -77,15 +77,71 @@ export const useFinanceData = () => {
         // First, let's check if we can query the existing tables directly
         console.log('Trying direct table query first...');
         
-        // Query postings_fbs table for delivered orders (same as useSalesData)
-        const { data: postingsData, error: postingsError } = await supabase
-          .from('postings_fbs')
-          .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-          .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
-          .lte(filters.dateType, formatMoscowDate(filters.dateTo))
-          .eq('status', 'delivered');
+        // Check if it's a single day period BEFORE making queries
+        const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
+        console.log('Is single day period:', isSingleDay);
+        console.log('Date from:', filters.dateFrom.toDateString());
+        console.log('Date to:', filters.dateTo.toDateString());
         
-        console.log('Postings_fbs table query result:', { data: postingsData, error: postingsError });
+        // Query postings_fbs table for delivered orders (same as useSalesData)
+        let postingsData: any[] | null = null;
+        let postingsError: any = null;
+        
+        if (isSingleDay) {
+          console.log('Single day period detected - using alternative query approach');
+          
+          // For single day, try to query with exact date match
+          const singleDayDate = formatMoscowDate(filters.dateFrom);
+          console.log('Single day date:', singleDayDate);
+          
+          const { data: singleDayData, error: singleDayError } = await supabase
+            .from('postings_fbs')
+            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+            .eq(filters.dateType, singleDayDate)
+            .eq('status', 'delivered');
+          
+          console.log('Single day query result:', { data: singleDayData, error: singleDayError });
+          
+          if (singleDayData && singleDayData.length > 0) {
+            postingsData = singleDayData;
+            console.log('Single day query successful, found', singleDayData.length, 'orders');
+          } else {
+            console.log('Single day query returned no data, trying range query as fallback');
+            
+            // Fallback to range query for single day
+            const { data: fallbackData, error: fallbackError } = await supabase
+              .from('postings_fbs')
+              .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+              .gte(filters.dateType, singleDayDate)
+              .lte(filters.dateType, singleDayDate)
+              .eq('status', 'delivered');
+            
+            console.log('Fallback query result:', { data: fallbackData, error: fallbackError });
+            postingsData = fallbackData;
+            postingsError = fallbackError;
+          }
+        } else {
+          // Multi-day period - use normal range query
+          console.log('Multi-day period - using normal range query');
+          const { data: rangeData, error: rangeError } = await supabase
+            .from('postings_fbs')
+            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+            .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
+            .lte(filters.dateType, formatMoscowDate(filters.dateTo))
+            .eq('status', 'delivered');
+          
+          postingsData = rangeData;
+          postingsError = rangeError;
+        }
+        
+        console.log('Final postings_fbs table query result:', { data: postingsData, error: postingsError });
+        console.log('Query params:', {
+          dateType: filters.dateType,
+          from: formatMoscowDate(filters.dateFrom),
+          to: formatMoscowDate(filters.dateTo),
+          status: 'delivered',
+          isSingleDay
+        });
         
         // Query vw_transaction_details table for financial data (same as useTransactionsData)
         const { data: transactionsData, error: transactionsError } = await supabase
@@ -95,17 +151,18 @@ export const useFinanceData = () => {
           .lte('operation_date_msk', formatMoscowDate(filters.dateTo));
         
         console.log('vw_transaction_details query result:', { data: transactionsData, error: transactionsError });
+        console.log('Transaction query params:', {
+          from: formatMoscowDate(filters.dateFrom),
+          to: formatMoscowDate(filters.dateTo)
+        });
         
         if (postingsData && postingsData.length > 0) {
           console.log('Found', postingsData.length, 'delivered orders in period');
           console.log('Sample order:', postingsData[0]);
         } else {
           console.log('No delivered orders found in period');
+          console.log('This might be the issue for single day periods');
         }
-        
-        // Check if it's a single day period
-        const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
-        console.log('Is single day period:', isSingleDay);
         
         // Calculate finance data from existing tables
         if (postingsData && postingsData.length > 0) {
@@ -174,6 +231,7 @@ export const useFinanceData = () => {
         
         // If no data from existing tables, return empty data
         console.log('No data available from existing tables');
+        console.log('This is the problem - no postings data found');
         return {
           summary: {
             sales: 0,
@@ -222,15 +280,62 @@ export const useFinanceBreakdown = () => {
       console.log('Filters received:', filters);
       
       try {
-        // Query existing tables for breakdown data
-        const { data: postingsData, error: postingsError } = await supabase
-          .from('postings_fbs')
-          .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-          .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
-          .lte(filters.dateType, formatMoscowDate(filters.dateTo))
-          .eq('status', 'delivered');
+        // Check if it's a single day period BEFORE making queries
+        const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
+        console.log('Is single day period for breakdown:', isSingleDay);
         
-        console.log('Postings_fbs table for breakdown:', { data: postingsData, error: postingsError });
+        // Query existing tables for breakdown data
+        let postingsData: any[] | null = null;
+        let postingsError: any = null;
+        
+        if (isSingleDay) {
+          console.log('Single day period detected for breakdown - using alternative query approach');
+          
+          // For single day, try to query with exact date match
+          const singleDayDate = formatMoscowDate(filters.dateFrom);
+          console.log('Single day date for breakdown:', singleDayDate);
+          
+          const { data: singleDayData, error: singleDayError } = await supabase
+            .from('postings_fbs')
+            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+            .eq(filters.dateType, singleDayDate)
+            .eq('status', 'delivered');
+          
+          console.log('Single day breakdown query result:', { data: singleDayData, error: singleDayError });
+          
+          if (singleDayData && singleDayData.length > 0) {
+            postingsData = singleDayData;
+            console.log('Single day breakdown query successful, found', singleDayData.length, 'orders');
+          } else {
+            console.log('Single day breakdown query returned no data, trying range query as fallback');
+            
+            // Fallback to range query for single day
+            const { data: fallbackData, error: fallbackError } = await supabase
+              .from('postings_fbs')
+              .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+              .gte(filters.dateType, singleDayDate)
+              .lte(filters.dateType, singleDayDate)
+              .eq('status', 'delivered');
+            
+            console.log('Fallback breakdown query result:', { data: fallbackData, error: fallbackError });
+            postingsData = fallbackData;
+            postingsError = fallbackError;
+          }
+        } else {
+          // Multi-day period - use normal range query
+          console.log('Multi-day period for breakdown - using normal range query');
+          const { data: rangeData, error: rangeError } = await supabase
+            .from('postings_fbs')
+            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
+            .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
+            .lte(filters.dateType, formatMoscowDate(filters.dateTo))
+            .eq('status', 'delivered');
+          
+          postingsData = rangeData;
+          postingsError = rangeError;
+        }
+        
+        console.log('Final postings_fbs table for breakdown:', { data: postingsData, error: postingsError });
         
         const { data: transactionsData, error: transactionsError } = await supabase
           .from('vw_transaction_details')
@@ -239,10 +344,6 @@ export const useFinanceBreakdown = () => {
           .lte('operation_date_msk', formatMoscowDate(filters.dateTo));
         
         console.log('vw_transaction_details for breakdown:', { data: transactionsData, error: transactionsError });
-        
-        // Check if it's a single day period
-        const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
-        console.log('Is single day period for breakdown:', isSingleDay);
         
         // Create breakdown from existing table data
         if (postingsData && postingsData.length > 0) {
