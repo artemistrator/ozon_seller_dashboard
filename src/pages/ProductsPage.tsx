@@ -46,32 +46,32 @@ export const ProductsPage: React.FC = () => {
       label: 'Единицы',
       sortable: true,
       render: (value) => formatNumber(value),
-      className: 'text-right',
+      className: 'text-center',
     },
     {
       key: 'gmv',
       label: 'GMV',
       sortable: true,
       render: (value) => formatCurrency(value),
-      className: 'text-right',
+      className: 'text-center',
     },
     {
       key: 'revenue',
       label: 'Выручка',
       sortable: true,
       render: (value) => formatCurrency(value),
-      className: 'text-right',
+      className: 'text-center',
     },
     {
       key: 'netProfit',
       label: 'Чистая прибыль',
-      sortable: true,
-      render: (value) => (
-        <span className={value >= 0 ? 'text-green-600' : 'text-red-600'}>
-          {formatCurrency(value)}
+      sortable: false,
+      render: () => (
+        <span className="text-gray-500">
+          —
         </span>
       ),
-      className: 'text-right',
+      className: 'text-center',
     },
   ];
 

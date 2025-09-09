@@ -227,7 +227,7 @@ export const RegionsPage: React.FC = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                     onClick={() => handleSort('orders')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -236,7 +236,7 @@ export const RegionsPage: React.FC = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                     onClick={() => handleSort('units')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -245,7 +245,7 @@ export const RegionsPage: React.FC = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                     onClick={() => handleSort('gmv')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -254,7 +254,7 @@ export const RegionsPage: React.FC = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                     onClick={() => handleSort('revenue')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -262,17 +262,11 @@ export const RegionsPage: React.FC = () => {
                       <span className="text-xs">{getSortIcon('revenue')}</span>
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                    onClick={() => handleSort('netProfit')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      Прибыль
-                      <span className="text-xs">{getSortIcon('netProfit')}</span>
-                    </div>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Прибыль
                   </th>
                   <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
                     onClick={() => handleSort('avgOrderValue')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -303,24 +297,24 @@ export const RegionsPage: React.FC = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-center">
                         {formatNumber(region.orders)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-center">
                         {formatNumber(region.units)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-center">
                         {formatCurrency(region.gmv)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-center font-medium">
                         {formatCurrency(region.revenue)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                        <span className={region.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-                          {formatCurrency(region.netProfit)}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        <span className="text-gray-500">
+                          —
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-center">
                         {formatCurrency(region.avgOrderValue)}
                       </td>
                     </tr>

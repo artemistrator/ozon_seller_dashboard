@@ -18,46 +18,43 @@ export interface FinanceCategory {
 }
 
 export interface FinanceSummary {
-  sales: number;
-  commissions: number;
-  delivery: number;
-  returns: number;
-  ads: number;
-  services: number;
+  sales: number; // OperationMarketplaceSale
+  commissions: number; // OperationMarketplaceServiceItemCommission  
+  delivery: number; // OperationMarketplaceServiceItemFBSDelivery
+  ads: number; // OperationMarketplaceMarketingActionCost
+  services: number; // OperationAgentPerformedService
+  acquiring: number; // Other financial operations
   totalIncome: number;
   totalExpenses: number;
-  netProfit: number;
+  netProfit: number; // Now calculated properly
 }
 
 export interface FinanceBreakdownItem {
-  date_msk: string;
-  posting_number: string;
-  sales: number;
-  commissions: number;
-  delivery: number;
-  returns: number;
-  ads: number;
-  services: number;
-  net_profit: number;
+  date: string;
+  posting: string;
   operation_type: string;
+  operation_type_name: string;
+  accruals_for_sale: number;
+  sale_commission: number;
+  amount: number;
 }
 
 const CATEGORY_COLORS = {
   sales: '#10b981',     // green
   commissions: '#ef4444', // red
   delivery: '#f59e0b',    // amber
-  returns: '#8b5cf6',     // violet
   ads: '#06b6d4',         // cyan
   services: '#84cc16',    // lime
+  acquiring: '#f97316',   // orange
 };
 
 const CATEGORY_LABELS = {
   sales: 'Продажи',
   commissions: 'Комиссии',
   delivery: 'Доставка',
-  returns: 'Возвраты',
   ads: 'Реклама',
-  services: 'Услуги',
+  services: 'Агентские',
+  acquiring: 'Эквайринг',
 };
 
 export const useFinanceData = () => {
@@ -66,7 +63,7 @@ export const useFinanceData = () => {
   return useQuery({
     queryKey: ['finance', filters],
     queryFn: async () => {
-      console.log('=== FINANCE HOOK EXECUTION ===');
+      console.log('=== FINANCE HOOK EXECUTION (ТЗ: accruals_for_sale + amount by operation_type) ===');
       console.log('Filters received:', filters);
       console.log('Formatted dates:', {
         from: formatMoscowDate(filters.dateFrom),
@@ -74,190 +71,192 @@ export const useFinanceData = () => {
       });
       
       try {
-        // First, let's check if we can query the existing tables directly
-        console.log('Trying direct table query first...');
-        
-        // Check if it's a single day period BEFORE making queries
+        // Check if it's a single day period
         const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
         console.log('Is single day period:', isSingleDay);
-        console.log('Date from:', filters.dateFrom.toDateString());
-        console.log('Date to:', filters.dateTo.toDateString());
         
-        // Query postings_fbs table for delivered orders (same as useSalesData)
-        let postingsData: any[] | null = null;
-        let postingsError: any = null;
+        // Query finance_transactions table directly (согласно ТЗ)
+        let transactionsData: any[] | null = null;
+        let transactionsError: any = null;
         
         if (isSingleDay) {
-          console.log('Single day period detected - using alternative query approach');
-          
-          // For single day, try to query with exact date match
           const singleDayDate = formatMoscowDate(filters.dateFrom);
-          console.log('Single day date:', singleDayDate);
+          const nextDayDate = formatMoscowDate(new Date(filters.dateFrom.getTime() + 24 * 60 * 60 * 1000));
+          console.log('Single day date range:', { from: singleDayDate, to: nextDayDate });
           
           const { data: singleDayData, error: singleDayError } = await supabase
-            .from('postings_fbs')
-            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-            .eq(filters.dateType, singleDayDate)
-            .eq('status', 'delivered');
+            .from('finance_transactions')
+            .select('*')
+            .gte('operation_date', singleDayDate)
+            .lt('operation_date', nextDayDate);
           
-          console.log('Single day query result:', { data: singleDayData, error: singleDayError });
-          
-          if (singleDayData && singleDayData.length > 0) {
-            postingsData = singleDayData;
-            console.log('Single day query successful, found', singleDayData.length, 'orders');
-          } else {
-            console.log('Single day query returned no data, trying range query as fallback');
-            
-            // Fallback to range query for single day
-            const { data: fallbackData, error: fallbackError } = await supabase
-              .from('postings_fbs')
-              .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-              .gte(filters.dateType, singleDayDate)
-              .lte(filters.dateType, singleDayDate)
-              .eq('status', 'delivered');
-            
-            console.log('Fallback query result:', { data: fallbackData, error: fallbackError });
-            postingsData = fallbackData;
-            postingsError = fallbackError;
-          }
+          transactionsData = singleDayData;
+          transactionsError = singleDayError;
         } else {
-          // Multi-day period - use normal range query
-          console.log('Multi-day period - using normal range query');
+          const fromDate = formatMoscowDate(filters.dateFrom);
+          const toDateInclusive = formatMoscowDate(new Date(filters.dateTo.getTime() + 24 * 60 * 60 * 1000));
+          console.log('Multi-day date range:', { from: fromDate, to: toDateInclusive });
+          
           const { data: rangeData, error: rangeError } = await supabase
-            .from('postings_fbs')
-            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-            .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
-            .lte(filters.dateType, formatMoscowDate(filters.dateTo))
-            .eq('status', 'delivered');
+            .from('finance_transactions')
+            .select('*')
+            .gte('operation_date', fromDate)
+            .lt('operation_date', toDateInclusive);
           
-          postingsData = rangeData;
-          postingsError = rangeError;
+          transactionsData = rangeData;
+          transactionsError = rangeError;
         }
         
-        console.log('Final postings_fbs table query result:', { data: postingsData, error: postingsError });
-        console.log('Query params:', {
-          dateType: filters.dateType,
-          from: formatMoscowDate(filters.dateFrom),
-          to: formatMoscowDate(filters.dateTo),
-          status: 'delivered',
-          isSingleDay
-        });
+        console.log('finance_transactions query result:', { data: transactionsData, error: transactionsError });
         
-        // Query vw_transaction_details table for financial data (same as useTransactionsData)
-        const { data: transactionsData, error: transactionsError } = await supabase
-          .from('vw_transaction_details')
-          .select('*')
-          .gte('operation_date_msk', formatMoscowDate(filters.dateFrom))
-          .lte('operation_date_msk', formatMoscowDate(filters.dateTo));
-        
-        console.log('vw_transaction_details query result:', { data: transactionsData, error: transactionsError });
-        console.log('Transaction query params:', {
-          from: formatMoscowDate(filters.dateFrom),
-          to: formatMoscowDate(filters.dateTo)
-        });
-        
-        if (postingsData && postingsData.length > 0) {
-          console.log('Found', postingsData.length, 'delivered orders in period');
-          console.log('Sample order:', postingsData[0]);
-        } else {
-          console.log('No delivered orders found in period');
-          console.log('This might be the issue for single day periods');
+        if (transactionsError) {
+          throw transactionsError;
         }
         
-        // Calculate finance data from existing tables
-        if (postingsData && postingsData.length > 0) {
-          console.log('Calculating finance data from existing tables...');
+        if (!transactionsData || transactionsData.length === 0) {
+          console.log('No financial transactions found for the period');
+          return {
+            summary: {
+              sales: 0,
+              commissions: 0,
+              delivery: 0,
+              ads: 0,
+              services: 0,
+              acquiring: 0,
+              totalIncome: 0,
+              totalExpenses: 0,
+              netProfit: 0,
+            },
+            categories: []
+          };
+        }
+        
+        // Log unique operation types for debugging
+        const uniqueOperationTypes = [...new Set(transactionsData.map((t: any) => t.operation_type))].filter(Boolean);
+        console.log('Found operation_types in finance_transactions:', uniqueOperationTypes);
+        
+        // Calculate financial metrics according to ТЗ specification + clarifications
+        let sales = 0;          // Выручка = Σ accruals_for_sale
+        let commissions = 0;    // Комиссия = Σ sale_commission  
+        let delivery = 0;       // Доставка/Логистика = Σ amount - (Σ accruals_for_sale + Σ sale_commission) для операций доставки
+        let acquiring = 0;      // Эквайринг = Σ amount по MarketplaceRedistributionOfAcquiringOperation
+        let ads = 0;           // Реклама = Σ amount по рекламным операциям
+        let services = 0;      // Агентские = Σ amount по OperationAgent*
+        let netProfit = 0;     // Чистая прибыль = Σ amount по всем операциям
+        
+        // Temporary variables for delivery calculation
+        let deliveryAccruals = 0;
+        let deliveryCommissions = 0;
+        let deliveryAmounts = 0;
+        
+        // Process each transaction according to ТЗ rules + field explanations
+        transactionsData.forEach((transaction: any) => {
+          const operationType = transaction.operation_type || '';
+          const amount = toNumber(transaction.amount || 0);
+          const accrualsForSale = toNumber(transaction.accruals_for_sale || 0);
+          const saleCommission = toNumber(transaction.sale_commission || 0);
           
-          // Calculate sales (payout from delivered orders)
-          const sales = postingsData.reduce((sum, item) => {
-            const payout = toNumber(item.payout) || 0;
-            const quantity = toNumber(item.quantity) || 1;
-            return sum + (payout * quantity);
-          }, 0);
+          // Чистая прибыль = сумма всех amount
+          netProfit += amount;
           
-          // Calculate commissions
-          const commissions = postingsData.reduce((sum, item) => {
-            const commission = toNumber(item.commission_amount) || 0;
-            const quantity = toNumber(item.quantity) || 1;
-            return sum + (commission * quantity);
-          }, 0);
-          
-          // Calculate delivery costs (estimate 8% of sales)
-          const delivery = sales * 0.08;
-          
-          // Calculate returns (estimate 2% of sales)
-          const returns = sales * 0.02;
-          
-          // Calculate ads costs (estimate 3% of sales)
-          const ads = sales * 0.03;
-          
-          // Calculate services costs from vw_transaction_details
-          let services = 0;
-          if (transactionsData && transactionsData.length > 0) {
-            // Filter for service transactions
-            const serviceTransactions = transactionsData.filter((t: any) => 
-              t.category === 'services' || t.operation_type_name?.toLowerCase().includes('service')
-            );
-            services = serviceTransactions.reduce((sum, t: any) => sum + toNumber(t.amount || 0), 0);
+          // Выручка = сумма accruals_for_sale (только по операциям доставки покупателю)
+          if (operationType === 'OperationAgentDeliveredToCustomer') {
+            sales += accrualsForSale;
+            // Комиссия = сумма sale_commission (отрицательная)
+            commissions += Math.abs(saleCommission); // берем модуль для отображения как расход
+            
+            // Для расчета доставки/логистики: amount - (accruals_for_sale + sale_commission)
+            deliveryAccruals += accrualsForSale;
+            deliveryCommissions += saleCommission;
+            deliveryAmounts += amount;
           }
           
-          const totalIncome = sales;
-          const totalExpenses = commissions + delivery + returns + ads + services;
-          const netProfit = totalIncome - totalExpenses;
-          
-          console.log('Calculated finance data:', {
-            sales, commissions, delivery, returns, ads, services,
-            totalIncome, totalExpenses, netProfit
-          });
-          
-          const summary: FinanceSummary = {
-            sales, commissions, delivery, returns, ads, services,
-            totalIncome, totalExpenses, netProfit
-          };
-          
-          const categoryData = { sales, commissions, delivery, returns, ads, services };
-          const categories: FinanceCategory[] = Object.entries(categoryData)
-            .filter(([, value]) => value > 0)
-            .map(([key, amount]) => ({
-              category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
-              amount,
-              percentage: totalIncome > 0 ? Math.round((amount / totalIncome) * 100) : 0,
-              color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
-            }))
-            .sort((a, b) => b.amount - a.amount);
-          
-          return { summary, categories };
-        }
+          // Эквайринг = сумма amount по MarketplaceRedistributionOfAcquiringOperation
+          else if (operationType === 'MarketplaceRedistributionOfAcquiringOperation') {
+            acquiring += Math.abs(amount);
+          }
+          // Реклама = сумма amount по рекламным операциям (расширенный список)
+          else if (operationType === 'OperationMarketplaceMarketingActionCost' ||
+                   operationType === 'OperationPromotionWithCostPerOrder' ||
+                   operationType === 'OperationElectronicServiceStencil' ||
+                   operationType === 'OperationGettingToTheTop') {
+            ads += Math.abs(amount);
+          }
+          // Агентские услуги = OperationAgent* (кроме уже учтенных в доставке)
+          else if (operationType.startsWith('OperationAgent') && 
+                   operationType !== 'OperationAgentDeliveredToCustomer') {
+            services += Math.abs(amount);
+          }
+          // Прочие доставочные операции
+          else if (operationType === 'OperationMarketplaceServiceItemFBSDelivery' ||
+                   operationType === 'OperationAgentPerformedService') {
+            services += Math.abs(amount); // Относим к агентским услугам
+          }
+        });
         
-        // If no data from existing tables, return empty data
-        console.log('No data available from existing tables');
-        console.log('This is the problem - no postings data found');
-        return {
-          summary: {
-            sales: 0,
-            commissions: 0,
-            delivery: 0,
-            returns: 0,
-            ads: 0,
-            services: 0,
-            totalIncome: 0,
-            totalExpenses: 0,
-            netProfit: 0,
-          },
-          categories: []
+        // Доставка/Логистика = amount - (accruals_for_sale + sale_commission) для операций доставки
+        delivery = Math.abs(deliveryAmounts - (deliveryAccruals + deliveryCommissions));
+        
+        // Для совместимости с существующим интерфейсом
+        const totalIncome = sales;
+        const totalExpenses = commissions + delivery + acquiring + ads + services;
+        
+        console.log('Financial calculations per ТЗ specification:', {
+          sales: `${sales} (from accruals_for_sale)`,
+          commissions: `${commissions} (from sale_commission)`,
+          delivery: `${delivery} (from amount - delivery operations)`,
+          acquiring: `${acquiring} (from amount - acquiring operations)`,
+          ads: `${ads} (from amount - marketing operations)`,
+          services: `${services} (from amount - agent operations)`,
+          netProfit: `${netProfit} (from sum of all amounts)`,
+          totalIncome,
+          totalExpenses
+        });
+        
+        const summary: FinanceSummary = {
+          sales,
+          commissions,
+          delivery,
+          ads,
+          services,
+          acquiring,
+          totalIncome,
+          totalExpenses,
+          netProfit
         };
+        
+        // Create categories for pie chart (включаем все категории с данными)
+        const categoryData = { 
+          sales, 
+          commissions, 
+          delivery, 
+          ads, 
+          services, 
+          acquiring 
+        };
+        
+        const categories: FinanceCategory[] = Object.entries(categoryData)
+          .filter(([, value]) => value > 0)
+          .map(([key, amount]) => ({
+            category: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] || key,
+            amount,
+            percentage: (totalIncome + totalExpenses) > 0 ? Math.round((amount / (totalIncome + totalExpenses)) * 100) : 0,
+            color: CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS] || '#cccccc'
+          }))
+          .sort((a, b) => b.amount - a.amount);
+        
+        return { summary, categories };
         
       } catch (error) {
         console.error('Error in finance data fetching:', error);
-        // Return empty data
         return {
           summary: {
             sales: 0,
             commissions: 0,
             delivery: 0,
-            returns: 0,
             ads: 0,
             services: 0,
+            acquiring: 0,
             totalIncome: 0,
             totalExpenses: 0,
             netProfit: 0,
@@ -276,124 +275,53 @@ export const useFinanceBreakdown = () => {
   return useQuery({
     queryKey: ['financeBreakdown', filters],
     queryFn: async () => {
-      console.log('=== FINANCE BREAKDOWN EXECUTION ===');
-      console.log('Filters received:', filters);
-      
       try {
-        // Check if it's a single day period BEFORE making queries
         const isSingleDay = filters.dateFrom.toDateString() === filters.dateTo.toDateString();
-        console.log('Is single day period for breakdown:', isSingleDay);
         
-        // Query existing tables for breakdown data
-        let postingsData: any[] | null = null;
-        let postingsError: any = null;
+        let transactionsData: any[] | null = null;
         
         if (isSingleDay) {
-          console.log('Single day period detected for breakdown - using alternative query approach');
-          
-          // For single day, try to query with exact date match
           const singleDayDate = formatMoscowDate(filters.dateFrom);
-          console.log('Single day date for breakdown:', singleDayDate);
+          const nextDayDate = formatMoscowDate(new Date(filters.dateFrom.getTime() + 24 * 60 * 60 * 1000));
           
-          const { data: singleDayData, error: singleDayError } = await supabase
-            .from('postings_fbs')
-            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-            .eq(filters.dateType, singleDayDate)
-            .eq('status', 'delivered');
+          const { data } = await supabase
+            .from('finance_transactions')
+            .select('*')
+            .gte('operation_date', singleDayDate)
+            .lt('operation_date', nextDayDate)
+            .order('operation_date', { ascending: false });
           
-          console.log('Single day breakdown query result:', { data: singleDayData, error: singleDayError });
-          
-          if (singleDayData && singleDayData.length > 0) {
-            postingsData = singleDayData;
-            console.log('Single day breakdown query successful, found', singleDayData.length, 'orders');
-          } else {
-            console.log('Single day breakdown query returned no data, trying range query as fallback');
-            
-            // Fallback to range query for single day
-            const { data: fallbackData, error: fallbackError } = await supabase
-              .from('postings_fbs')
-              .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-              .gte(filters.dateType, singleDayDate)
-              .lte(filters.dateType, singleDayDate)
-              .eq('status', 'delivered');
-            
-            console.log('Fallback breakdown query result:', { data: fallbackData, error: fallbackError });
-            postingsData = fallbackData;
-            postingsError = fallbackError;
-          }
+          transactionsData = data;
         } else {
-          // Multi-day period - use normal range query
-          console.log('Multi-day period for breakdown - using normal range query');
-          const { data: rangeData, error: rangeError } = await supabase
-            .from('postings_fbs')
-            .select('order_id, quantity, price_total, payout, commission_amount, status, in_process_at, shipment_date, delivering_date')
-            .gte(filters.dateType, formatMoscowDate(filters.dateFrom))
-            .lte(filters.dateType, formatMoscowDate(filters.dateTo))
-            .eq('status', 'delivered');
+          const fromDate = formatMoscowDate(filters.dateFrom);
+          const toDateInclusive = formatMoscowDate(new Date(filters.dateTo.getTime() + 24 * 60 * 60 * 1000));
           
-          postingsData = rangeData;
-          postingsError = rangeError;
+          const { data } = await supabase
+            .from('finance_transactions')
+            .select('*')
+            .gte('operation_date', fromDate)
+            .lt('operation_date', toDateInclusive)
+            .order('operation_date', { ascending: false });
+          
+          transactionsData = data;
         }
         
-        console.log('Final postings_fbs table for breakdown:', { data: postingsData, error: postingsError });
-        
-        const { data: transactionsData, error: transactionsError } = await supabase
-          .from('vw_transaction_details')
-          .select('*')
-          .gte('operation_date_msk', formatMoscowDate(filters.dateFrom))
-          .lte('operation_date_msk', formatMoscowDate(filters.dateTo));
-        
-        console.log('vw_transaction_details for breakdown:', { data: transactionsData, error: transactionsError });
-        
-        // Create breakdown from existing table data
-        if (postingsData && postingsData.length > 0) {
-          console.log('Creating breakdown from existing table data');
-          
-          // Calculate finance metrics
-          const sales = postingsData.reduce((sum, item) => {
-            const payout = toNumber(item.payout) || 0;
-            const quantity = toNumber(item.quantity) || 1;
-            return sum + (payout * quantity);
-          }, 0);
-          
-          const commissions = postingsData.reduce((sum, item) => {
-            const commission = toNumber(item.commission_amount) || 0;
-            const quantity = toNumber(item.quantity) || 1;
-            return sum + (commission * quantity);
-          }, 0);
-          
-          const delivery = sales * 0.08;
-          const returns = sales * 0.02;
-          const ads = sales * 0.03;
-          
-          // Calculate services from vw_transaction_details
-          let services = 0;
-          if (transactionsData && transactionsData.length > 0) {
-            const serviceTransactions = transactionsData.filter((t: any) => 
-              t.category === 'services' || t.operation_type_name?.toLowerCase().includes('service')
-            );
-            services = serviceTransactions.reduce((sum, t: any) => sum + toNumber(t.amount || 0), 0);
-          }
-          
-          const netProfit = sales - (commissions + delivery + returns + ads + services);
-          
-          return [{
-            date_msk: formatMoscowDate(filters.dateFrom),
-            posting_number: 'SUMMARY',
-            sales,
-            commissions,
-            delivery,
-            returns,
-            ads,
-            services,
-            net_profit: netProfit,
-            operation_type: isSingleDay ? 'Сводка (один день)' : 'Сводка (существующие данные)',
-          }];
+        if (!transactionsData || transactionsData.length === 0) {
+          return [];
         }
         
-        // If no data at all, return empty
-        console.log('No data available for breakdown');
-        return [];
+        // Transform data for breakdown table according to ТЗ: operation_date, operation_type_name, posting_number, accruals_for_sale, sale_commission, amount
+        const breakdownData: FinanceBreakdownItem[] = transactionsData.map((transaction: any) => ({
+          date: formatMoscowDate(new Date(transaction.operation_date)),
+          posting: transaction.posting_number || '',
+          operation_type: transaction.operation_type || '',
+          operation_type_name: transaction.operation_type_name || '',
+          accruals_for_sale: toNumber(transaction.accruals_for_sale || 0),
+          sale_commission: toNumber(transaction.sale_commission || 0),
+          amount: toNumber(transaction.amount || 0),
+        }));
+        
+        return breakdownData;
         
       } catch (error) {
         console.error('Error in finance breakdown fetching:', error);

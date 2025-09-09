@@ -6,6 +6,7 @@ import {
   MapPin, 
   DollarSign, 
   FileText,
+  Calculator,
   Menu,
   X,
   Moon,
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'По регионам', href: '/regions', icon: MapPin },
   { name: 'Финансы', href: '/finance', icon: DollarSign },
   { name: 'Детализация', href: '/transactions', icon: FileText },
+  { name: 'Себестоимость', href: '/product-costs', icon: Calculator },
 ];
 
 export const AppLayout: React.FC = () => {

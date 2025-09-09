@@ -18,7 +18,7 @@ export interface SalesMetrics {
   deliveredCommissions: number;
   cancelledGmv: number;
   inDeliveryGmv: number;
-  netProfit: number;
+  netProfit: number | null; // Temporarily null as requested
 }
 
 export interface DailySalesData {
@@ -83,8 +83,8 @@ const calculateSalesMetricsManually = (data: any[]) => {
     .filter(item => item.status === 'in_delivery')
     .reduce((sum, item) => sum + toNumber(item.price_total), 0);
   
-  // Net profit calculation: payout - commission_amount
-  const netProfit = totalRevenue - totalCommissions;
+  // Net profit - temporarily disabled as requested (replaced with dash)
+  const netProfit = null; // Will be implemented later
   
   const result = {
     totalOrders,
@@ -117,8 +117,9 @@ const transformSalesMetrics = (data: any): SalesMetrics => {
   const totalCommissions = toNumber(data.total_commissions);
   const deliveredCommissions = toNumber(data.delivered_commissions);
   
-  // Net profit is already calculated correctly in RPC: payout - commission_amount
-  const netProfit = toNumber(data.net_profit);
+  // Net profit is already calculated correctly in RPC as payout
+  // Net profit - temporarily disabled as requested (replaced with dash)
+  const netProfit = null; // Will be implemented later
   
   const result = {
     totalOrders: toNumber(data.total_orders),
@@ -134,7 +135,7 @@ const transformSalesMetrics = (data: any): SalesMetrics => {
     deliveredCommissions: deliveredCommissions,
     cancelledGmv: toNumber(data.cancelled_gmv),
     inDeliveryGmv: toNumber(data.in_delivery_gmv),
-    netProfit: netProfit, // Use the pre-calculated value
+    netProfit: null, // Temporarily disabled - will be implemented later
   };
   
   console.log('Transformed Sales Metrics Result:', result);

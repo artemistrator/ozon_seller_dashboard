@@ -1,230 +1,284 @@
-# Ozon FBS Analytics Dashboard
+# 🚀 Ozon Seller Dashboard
 
-## 🎯 **Overview**
+## 📊 Аналитический дашборд для продавцов Ozon FBS
 
-A comprehensive, modular web dashboard for Ozon FBS (Fulfilled By Seller) sales analytics. The dashboard provides real-time insights into sales performance, financial metrics, product analytics, regional performance, and detailed transaction tracking.
+Комплексное веб-приложение для анализа эффективности продаж на маркетплейсе Ozon по модели Fulfilled By Seller (FBS). Предоставляет детальную аналитику продаж, финансов, себестоимости и прибыльности в реальном времени.
 
-## ✨ **Features**
+![Dashboard Preview](https://via.placeholder.com/800x400?text=Ozon+Analytics+Dashboard)
 
-### 📊 **Sales Analytics**
-- Interactive daily sales charts with GMV/Orders/Units views
-- 8 key performance metrics with period-over-period comparison
-- Real-time trend indicators and percentage changes
-- Moscow timezone handling for accurate date calculations
+## ✨ Основные возможности
 
-### 🛍️ **Product Performance**
-- Comprehensive product table with pagination and search
-- Performance metrics by SKU with profit calculations
-- Advanced filtering and sorting capabilities
-- Revenue and unit analysis per product
+### 📈 **Вкладка "Продажи"**
+- Интерактивные графики GMV, заказов, единиц
+- Сравнение с предыдущими периодами
+- Анализ себестоимости и чистой прибыли
+- Фильтрация по дате доставки/отгрузки/заказа
+- Опция учета 6% налога ИП
 
-### 🌍 **Regional Analysis**
-- Top-performing regions ranked by revenue
-- Regional metrics comparison with sorting
-- Geographic performance insights
-- Region-wise GMV and order analysis
+### 💰 **Вкладка "Финансы"**
+- Полный финансовый учет по операциям Ozon
+- Категоризация расходов (комиссии, доставка, реклама, эквайринг)
+- Расчет чистой прибыли с учетом всех расходов и себестоимости
+- Круговые диаграммы распределения затрат
+- Детализация финансовых операций
 
-### 💰 **Financial Breakdown**
-- Interactive pie chart showing financial category distribution
-- Detailed expense tracking (commissions, delivery, ads, services)
-- Net profit calculations and profitability analysis
-- Category-wise financial insights
+### 🏷️ **Вкладка "Себестоимость"**
+- Управление себестоимостью товаров
+- Inline-редактирование стоимости
+- Автоматическое получение цен из отгрузок
+- Поиск и фильтрация товаров
+- Статистика по заполненности данных
 
-### 📑 **Transaction Details**
-- Comprehensive transaction table with advanced search
-- Category filtering and multi-column sorting
-- Detailed operation tracking with service/item breakdown
-- Posting number search and warehouse information
+### 📦 **Вкладка "По товарам"**
+- SKU-уровневый анализ прибыльности
+- Фильтрация и сортировка товаров
+- Расчет маржинальности по товарам
+- Анализ топ-товаров по выручке
 
-## 🛠️ **Technology Stack**
+### 🗺️ **Вкладка "По регионам"**
+- Географический анализ продаж
+- Рейтинг регионов по выручке
+- Региональная прибыльность
 
-- **Frontend**: Vite + React + TypeScript + TailwindCSS
-- **State Management**: React Query + URL-synchronized filters
-- **Charts**: Recharts library
-- **Database**: Supabase (PostgreSQL) with custom views and RPC functions
-- **Styling**: Custom component system with responsive design
-- **Routing**: React Router with nested layouts
+### 📋 **Вкладка "Детализация"**
+- Подробная таблица всех операций
+- Поиск и фильтрация транзакций
+- Экспорт данных
+- Категоризация операций
 
-## 🏗️ **Architecture**
+## 🛠️ Технологический стек
 
-### **Database Layer**
-- **5 Custom Views** for optimized data retrieval:
-  - `vw_daily_sales` - Aggregated daily sales metrics
-  - `vw_products_performance` - Product analytics
-  - `vw_regions_performance` - Regional performance
-  - `vw_finance_breakdown` - Financial categorization
-  - `vw_transaction_details` - Detailed transaction data
+### **Frontend**
+- **React 18** + **TypeScript** - современный UI
+- **Vite** - быстрая сборка и разработка
+- **TailwindCSS** - стилизация
+- **React Query 5** - управление состоянием и кэширование
+- **React Router** - навигация
+- **Recharts 2.8** - интерактивные графики
+- **Lucide React** - иконки
 
-- **2 RPC Functions** for complex queries:
-  - `get_sales_metrics()` - Filtered sales aggregations
-  - `get_finance_summary()` - Financial breakdown by category
+### **Backend & Database**
+- **Supabase (PostgreSQL)** - база данных как сервис
+- **Кастомные представления** для оптимизации запросов
+- **RPC функции** для сложных расчетов
+- **Реал-тайм синхронизация** данных
 
-### **Frontend Architecture**
-- **Modular Component System** with reusable UI components
-- **Feature-based Organization** with separate hooks for each domain
-- **URL State Synchronization** for shareable filter states
-- **Responsive Design** with mobile-first approach
+### **Дополнительные возможности**
+- **Московское время** - корректная обработка временных зон
+- **URL-синхронизация фильтров** - делимые ссылки на состояния
+- **Адаптивный дизайн** - поддержка мобильных устройств
+- **Темная тема** - переключение светлой/темной темы
 
-## 🚀 **Getting Started**
+## 🚀 Быстрый старт
 
-### **Prerequisites**
-- Node.js 18+
-- npm or yarn
-- Supabase account with project setup
+### **Предварительные требования**
+- Node.js 18+ ([скачать](https://nodejs.org/))
+- npm (поставляется с Node.js)
+- Аккаунт Supabase ([создать бесплатно](https://supabase.com))
 
-### **Installation**
+### **1. Клонирование репозитория**
+```bash
+git clone https://github.com/artemistrator/ozon_seller_dashboard.git
+cd ozon_seller_dashboard
+```
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+### **2. Установка зависимостей**
+```bash
+npm install
+```
 
-2. **Configure environment variables**:
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Update `.env` with your Supabase credentials:
-   ```
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+### **3. Настройка окружения**
+Создайте файл `.env` в корне проекта:
+```bash
+cp .env.example .env
+```
 
-3. **Start development server**:
-   ```bash
-   npm run dev
-   ```
+Заполните переменные окружения в `.env`:
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-4. **Access the dashboard**:
-   Open `http://localhost:5173` in your browser
+### **4. Настройка базы данных**
+1. Создайте новый проект в [Supabase](https://supabase.com)
+2. Выполните SQL-скрипты из папки `database/` для создания таблиц:
+   - `01_create_tables.sql` - основные таблицы
+   - `02_create_views.sql` - представления для аналитики
+   - `03_create_functions.sql` - RPC функции
 
-## 📋 **Database Setup**
+### **5. Импорт данных**
+Загрузите ваши данные Ozon в созданные таблицы:
+- `postings_fbs` - данные отгрузок FBS
+- `finance_transactions` - финансовые операции
+- `finance_transaction_items` - детали по товарам
+- `finance_transaction_services` - детали по услугам
 
-The dashboard requires specific database views and RPC functions. These are automatically created when you first run the application, but you can also create them manually using the migration files in the project.
+### **6. Запуск приложения**
+```bash
+npm run dev
+```
 
-### **Required Tables**
-- `postings_fbs` - FBS order postings
-- `finance_transactions` - Financial operations
-- `finance_transaction_services` - Service details
-- `finance_transaction_items` - Item details
+Откройте [http://localhost:5173](http://localhost:5173) в браузере.
 
-## 🎨 **Key Features Explained**
+## 📊 Структура данных
 
-### **Smart Date Handling**
-- All dates are normalized to Moscow timezone (`Europe/Moscow`)
-- Default 7-day period on initial load
-- Automatic period-over-period comparison
-- Flexible date range selection
+### **Основные таблицы**
+```sql
+postings_fbs           -- Отгрузки FBS (манagerial учет)
+finance_transactions   -- Финансовые операции (financial учет)
+finance_transaction_items    -- Детали по товарам в операциях
+finance_transaction_services -- Детали по услугам в операциях
+product_costs         -- Себестоимость товаров (пользовательские данные)
+map_operation_types   -- Маппинг типов операций (опционально)
+```
 
-### **Advanced Filtering**
-- **Global Filters**: Date range, SKU, Region (URL-synchronized)
-- **Table-specific**: Search, pagination, sorting, category filters
-- **Cross-tab Consistency**: Filters apply across all dashboard sections
+### **Ключевые поля**
+- **postings_fbs**: `sku`, `offer_id`, `product_name`, `quantity`, `price`, `payout`, `shipment_date`, `delivering_date`
+- **finance_transactions**: `operation_date`, `operation_type`, `operation_type_name`, `amount`, `accruals_for_sale`, `sale_commission`
+- **product_costs**: `sku`, `offer_id`, `cost_price` (редактируется пользователем)
 
-### **Performance Optimizations**
-- **Server-side Pagination** for large datasets
-- **Query Caching** with React Query (5-minute stale time)
-- **Optimized Database Views** for faster data retrieval
-- **Lazy Loading** and code splitting ready
+## 🎯 Как пользоваться
 
-### **Russian Localization**
-- Currency formatting in RUB
-- Number formatting with Russian locale (`ru-RU`)
-- Cyrillic interface with proper typography
-- Date formatting in Russian format
+### **Навигация по вкладкам**
+1. **Продажи** - общий обзор продаж и трендов
+2. **По товарам** - анализ отдельных SKU
+3. **По регионам** - географическая аналитика
+4. **Финансы** - финансовый учет и P&L
+5. **Детализация** - подробные транзакции
+6. **Себестоимость** - управление затратами
 
-## 📊 **Metrics & KPIs**
+### **Фильтры дат**
+- **По дате доставки** - когда товар доставлен покупателю
+- **По дате отгрузки** - когда товар отправлен со склада
+- **По дате заказа** - когда заказ поступил в обработку
 
-### **Sales Metrics**
-- **GMV** (Gross Merchandise Value)
-- **Revenue** (Seller payout)
-- **Net Profit** (Revenue minus all costs)
-- **Orders** & **Units** sold
-- **Average Order Value**
-- **Cancellation Rate**
-- **In-Delivery Volume**
+### **Управление себестоимостью**
+1. Перейдите на вкладку "Себестоимость"
+2. Найдите нужный товар через поиск
+3. Нажмите на иконку редактирования ✏️
+4. Введите себестоимость в рублях
+5. Нажмите ✅ для сохранения
 
-### **Financial Categories**
-- **Sales**: Product revenue (positive)
-- **Commissions**: Platform fees (negative)
-- **Delivery**: Shipping costs (negative)
-- **Returns**: Return delivery costs (negative)
-- **Ads**: Advertising expenses (negative)
-- **Services**: Additional services (negative)
+### **Анализ прибыльности**
+- Во вкладках "Продажи" и "Финансы" используйте галочку "Учитывать 6% налог"
+- Чистая прибыль рассчитывается как: `Доходы - Расходы - Себестоимость`
+- Цветовая индикация: 🟢 прибыль, 🔴 убытки
 
-## 🔧 **Customization**
+## 🔧 Команды разработки
 
-### **Adding New Tabs**
-1. Create new page component in `src/pages/`
-2. Add route in `src/App.tsx`
-3. Update sidebar navigation in `src/components/layout/AppLayout.tsx`
-4. Create corresponding data hooks in `src/hooks/`
+```bash
+# Разработка
+npm run dev
 
-### **Extending Metrics**
-1. Update database views with new calculated fields
-2. Modify TypeScript interfaces in hook files
-3. Add new metric cards to relevant pages
-4. Update formatting utilities if needed
+# Сборка для продакшена
+npm run build
 
-## 🔍 **Troubleshooting**
+# Предварительный просмотр сборки
+npm run preview
 
-### **Common Issues**
+# Проверка типов и стиля кода
+npm run lint
+```
 
-1. **\"No data\" showing**:
-   - Check Supabase connection and credentials
-   - Verify database tables contain data for selected period
-   - Check browser console for API errors
+## 📁 Структура проекта
 
-2. **Slow loading**:
-   - Verify database indexes on date columns
-   - Check if views are properly created
-   - Consider reducing date range for large datasets
+```
+ozon_seller_dashboard/
+├── src/
+│   ├── components/          # Переиспользуемые компоненты
+│   │   ├── charts/         # Компоненты графиков
+│   │   ├── layout/         # Layout компоненты
+│   │   └── ui/             # UI компоненты
+│   ├── hooks/              # Кастомные React хуки
+│   ├── lib/                # Утилиты и конфигурация
+│   ├── pages/              # Страницы приложения
+│   └── contexts/           # React контексты
+├── database/               # SQL скрипты для БД
+├── docs/                   # Документация
+└── public/                 # Статические файлы
+```
 
-3. **Filter not working**:
-   - Clear browser cache and local storage
-   - Check URL parameters for corruption
-   - Verify filter values match database format
+## 🔐 Безопасность
 
-### **Development Tools**
-- **React Query DevTools**: Add for debugging data fetching
-- **Supabase Dashboard**: Monitor database performance
-- **Browser DevTools**: Check network requests and console errors
+- Используется Supabase анонимный ключ для клиентского доступа
+- Доступ к данным контролируется через Row Level Security (RLS)
+- Переменные окружения для чувствительных данных
+- Нет прямого доступа к базе данных из frontend
 
-## 📈 **Future Enhancements**
+## 📈 Особенности расчетов
 
-### **Planned Features**
-- **Export Functionality**: CSV/Excel export for all tables
-- **Advanced Analytics**: Cohort analysis, forecasting
-- **Real-time Updates**: WebSocket integration for live data
-- **Mobile App**: React Native version
-- **Multi-tenant**: Support for multiple seller accounts
+### **Финансовая логика**
+- **Managerial учет** (вкладки Продажи/Товары/Регионы): данные из `postings_fbs`
+- **Financial учет** (вкладки Финансы/Детализация): данные из `finance_transactions`
+- **Себестоимость**: из таблицы `product_costs` с связкой по SKU
 
-### **Performance Improvements**
-- **Materialized Views**: For heavy aggregations
-- **CDN Integration**: For static assets
-- **Progressive Web App**: Offline capabilities
-- **GraphQL**: More efficient data fetching
+### **Формулы**
+```
+GMV = SUM(price_total)
+Выручка = SUM(payout)
+Чистая прибыль = Общий доход - Общие расходы - Себестоимость
+Налог 6% = Чистая прибыль × 0.06 (опционально)
+```
 
-## 🤝 **Contributing**
+## 🎨 Кастомизация
 
-1. **Fork the repository**
-2. **Create feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open Pull Request**
+### **Темы**
+Переключайте между светлой и темной темой через иконку в сайдбаре.
 
-## 📄 **License**
+### **Фильтры**
+Все фильтры синхронизируются с URL - вы можете делиться ссылками на конкретные состояния дашборда.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### **Период анализа**
+Выбирайте любой диапазон дат через календарь в верхней части страницы.
 
-## 🆘 **Support**
+## 🔄 Обновление данных
 
-For support and questions:
-- Check the troubleshooting section above
-- Review database schema and data requirements
-- Ensure all dependencies are properly installed
-- Verify Supabase configuration and permissions
+1. **Автоматическое**: данные кэшируются на 5 минут и обновляются автоматически
+2. **Ручное**: используйте кнопки обновления или перезагрузите страницу
+3. **Реал-тайм**: изменения себестоимости сохраняются мгновенно
+
+## 🐛 Устранение неполадок
+
+### **Приложение не запускается**
+```bash
+# Проверьте версию Node.js
+node --version  # должно быть 18+
+
+# Переустановите зависимости
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### **Ошибки загрузки данных**
+1. Проверьте переменные окружения в `.env`
+2. Убедитесь, что Supabase проект активен
+3. Проверьте настройки RLS в Supabase
+
+### **Пустые графики**
+1. Убедитесь, что данные загружены в таблицы
+2. Проверьте выбранный диапазон дат
+3. Проверьте консоль браузера на ошибки
+
+## 📞 Поддержка
+
+При возникновении проблем:
+1. Проверьте [Issues](https://github.com/artemistrator/ozon_seller_dashboard/issues)
+2. Создайте новый Issue с подробным описанием
+3. Приложите скриншоты и логи из консоли
+
+## 📄 Лицензия
+
+MIT License - см. файл [LICENSE](LICENSE)
+
+## 🙏 Благодарности
+
+- **Ozon** за предоставление API и данных
+- **Supabase** за отличную BaaS платформу  
+- **React** и **TypeScript** сообщества
+- Всем контрибьюторам проекта
 
 ---
 
-**Built with ❤️ for Ozon sellers to optimize their FBS performance**
+**🎯 Создано для эффективного управления продажами на Ozon FBS**
+
+⭐ Поставьте звезду, если проект оказался полезным!

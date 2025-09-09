@@ -9,6 +9,7 @@ import { ProductsPage } from './pages/ProductsPage';
 import { RegionsPage } from './pages/RegionsPage';
 import { FinancePage } from './pages/FinancePage';
 import { TransactionsPage } from './pages/TransactionsPage';
+import { ProductCostsPage } from './pages/ProductCostsPage';
 
 // Component to handle redirect with preserved search params
 const RedirectToSales: React.FC = () => {
@@ -57,6 +58,7 @@ function App() {
                 <Route path="regions" element={<RegionsPage />} />
                 <Route path="finance" element={<FinancePage />} />
                 <Route path="transactions" element={<TransactionsPage />} />
+                <Route path="product-costs" element={<ProductCostsPage />} />
               </Route>
             </Routes>
           </div>

@@ -9,6 +9,7 @@ export interface StatCardProps {
   format?: 'currency' | 'number' | 'percentage';
   loading?: boolean;
   icon?: React.ReactNode;
+  displayValue?: string; // Override display value
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -18,6 +19,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   format = 'number',
   loading = false,
   icon,
+  displayValue,
 }) => {
   const formatValue = (val: number | null) => {
     if (val == null) return '—';
@@ -84,7 +86,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
       
       <div className="metric-value mb-2">
-        {formatValue(value)}
+        {displayValue || formatValue(value)}
       </div>
       
       {getChangeDisplay()}

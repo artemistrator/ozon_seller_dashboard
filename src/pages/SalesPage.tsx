@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   TrendingUp, 
   ShoppingCart, 
@@ -6,17 +6,21 @@ import {
   DollarSign,
   Target,
   XCircle,
-  Truck
+  Truck,
+  Calculator
 } from 'lucide-react';
 import { StatCard } from '../components/ui/StatCard';
 import { DailySalesChart } from '../components/charts/DailySalesChart';
 import { useSalesMetrics, usePreviousSalesMetrics } from '../hooks/useSalesData';
+import { useCostAnalysis } from '../hooks/useCostAnalysis';
 import { useFilters } from '../hooks/useFilters';
 
 export const SalesPage: React.FC = () => {
   const { data: currentMetrics, isLoading } = useSalesMetrics();
   const { data: previousMetrics } = usePreviousSalesMetrics();
+  const { data: costAnalysis } = useCostAnalysis();
   const { filters, updateFilters } = useFilters();
+  const [includeTax, setIncludeTax] = useState(false);
 
   const statsConfig = [
     {
@@ -34,10 +38,17 @@ export const SalesPage: React.FC = () => {
       format: 'currency' as const,
     },
     {
+      title: 'Себестоимость',
+      icon: <Calculator className="w-5 h-5" />,
+      value: costAnalysis?.totalCostPrice,
+      previousValue: null,
+      format: 'currency' as const,
+    },
+    {
       title: 'Чистая прибыль',
       icon: <Target className="w-5 h-5" />,
-      value: currentMetrics?.netProfit,
-      previousValue: previousMetrics?.netProfit,
+      value: costAnalysis ? (includeTax ? costAnalysis.netProfitAfterCostsAndTax : costAnalysis.netProfitAfterCosts) : null,
+      previousValue: null,
       format: 'currency' as const,
     },
     {
@@ -82,15 +93,15 @@ export const SalesPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Продажи</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Продажи</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Аналитика продаж и ключевые метрики эффективности
           </p>
         </div>
         
         {/* Date Filter Buttons */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 mr-2">Период по:</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Период по:</span>
           <button
             onClick={() => updateFilters({ dateType: 'delivering_date' })}
             className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -126,6 +137,21 @@ export const SalesPage: React.FC = () => {
 
       {/* Daily Sales Chart */}
       <DailySalesChart />
+
+      {/* Checkbox for including tax in net profit calculation */}
+      {costAnalysis && (
+        <div className="flex items-center justify-end">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeTax}
+              onChange={(e) => setIncludeTax(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">Учитывать 6% налог в чистой прибыли</span>
+          </label>
+        </div>
+      )}
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

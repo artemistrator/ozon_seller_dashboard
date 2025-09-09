@@ -1,37 +1,21 @@
 import React from 'react';
-import { FileText, Hash, Calendar, DollarSign } from 'lucide-react';
+import { FileText, Calendar, DollarSign } from 'lucide-react';
 import { DataTable, Column } from '../components/ui/DataTable';
 import { 
   useTransactionsTable, 
   useTransactionsData, 
-  useTransactionCategories,
-  TransactionDetail,
-  CATEGORY_LABELS 
+  TransactionDetail
 } from '../hooks/useTransactionsData';
 import { formatCurrency, formatNumber } from '../lib/format';
-
-const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    sales: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
-    commissions: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
-    delivery: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300',
-    returns: 'bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300',
-    ads: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-300',
-    services: 'bg-lime-100 dark:bg-lime-900/30 text-lime-800 dark:text-lime-300',
-    other: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300',
-  };
-  return colors[category] || colors.other;
-};
 
 export const TransactionsPage: React.FC = () => {
   const { tableState, updateTableState } = useTransactionsTable();
   const { data: tableData, isLoading, error, refetch } = useTransactionsData(tableState);
-  const { data: categories } = useTransactionCategories();
 
   const columns: Column<TransactionDetail>[] = [
     {
-      key: 'operation_date_msk',
-      label: 'Дата',
+      key: 'operation_date',
+      label: 'Дата операции (operation_date)',
       sortable: true,
       render: (value) => {
         if (!value) return '—';
@@ -50,7 +34,7 @@ export const TransactionsPage: React.FC = () => {
     },
     {
       key: 'posting_number',
-      label: 'Номер отправления',
+      label: 'Номер отправления (posting_number)',
       render: (value) => (
         <span className="font-mono text-sm text-blue-600 dark:text-blue-400">
           {value || '—'}
@@ -58,26 +42,52 @@ export const TransactionsPage: React.FC = () => {
       ),
     },
     {
-      key: 'operation_type_name',
-      label: 'Тип операции',
+      key: 'operation_type',
+      label: 'Тип операции (operation_type)',
       render: (value) => (
-        <span className="text-sm text-gray-900 dark:text-gray-100 max-w-[200px] truncate block" title={value}>
+        <span className="text-sm text-gray-900 dark:text-gray-100 max-w-[200px] truncate block font-mono" title={value}>
           {value || '—'}
         </span>
       ),
     },
     {
-      key: 'category',
-      label: 'Категория',
+      key: 'operation_type_name', 
+      label: 'Название операции (operation_type_name)',
       render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(value)}`}>
-          {CATEGORY_LABELS[value] || value}
+        <span className="text-sm text-gray-900 dark:text-gray-100 max-w-[250px] truncate block" title={value}>
+          {value || '—'}
         </span>
       ),
     },
     {
+      key: 'accruals_for_sale',
+      label: 'Выручка (accruals_for_sale)',
+      sortable: true,
+      render: (value) => (
+        <span className={`font-medium ${
+          value > 0 ? 'text-green-600' : 'text-gray-400'
+        }`}>
+          {value > 0 ? formatCurrency(value) : '—'}
+        </span>
+      ),
+      className: 'text-center',
+    },
+    {
+      key: 'sale_commission',
+      label: 'Комиссия (sale_commission)',
+      sortable: true,
+      render: (value) => (
+        <span className={`font-medium ${
+          value !== 0 ? 'text-red-600' : 'text-gray-400'
+        }`}>
+          {value !== 0 ? formatCurrency(Math.abs(value)) : '—'}
+        </span>
+      ),
+      className: 'text-center',
+    },
+    {
       key: 'amount',
-      label: 'Сумма',
+      label: 'Сумма операции (amount)',
       sortable: true,
       render: (value) => (
         <span className={`font-medium ${
@@ -86,61 +96,29 @@ export const TransactionsPage: React.FC = () => {
           {formatCurrency(value)}
         </span>
       ),
-      className: 'text-right',
-    },
-    {
-      key: 'service_name',
-      label: 'Услуга',
-      render: (value, row) => {
-        if (value) {
-          return (
-            <div className="text-sm">
-              <div className="text-gray-900 dark:text-gray-100 max-w-[150px] truncate" title={value}>
-                {value}
-              </div>
-              {row.service_price !== 0 && (
-                <div className="text-gray-500 dark:text-gray-400 text-xs">
-                  {formatCurrency(row.service_price)}
-                </div>
-              )}
-            </div>
-          );
-        }
-        return '—';
-      },
-    },
-    {
-      key: 'item_name',
-      label: 'Товар',
-      render: (value, row) => {
-        if (value || row.item_sku) {
-          return (
-            <div className="text-sm">
-              {row.item_sku > 0 && (
-                <div className="font-mono text-xs text-gray-500 dark:text-gray-400">
-                  SKU: {formatNumber(row.item_sku)}
-                </div>
-              )}
-              {value && (
-                <div className="text-gray-900 dark:text-gray-100 max-w-[150px] truncate" title={value}>
-                  {value}
-                </div>
-              )}
-            </div>
-          );
-        }
-        return '—';
-      },
-    },
-    {
-      key: 'warehouse_id',
-      label: 'Склад',
-      render: (value) => (
-        <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
-          {value > 0 ? formatNumber(value) : '—'}
-        </span>
-      ),
       className: 'text-center',
+    },
+    {
+      key: 'category',
+      label: 'Категория (по ТЗ)',
+      render: (value) => {
+        const categoryMap: { [key: string]: { label: string; color: string } } = {
+          'продажи/доставка/комиссия': { label: 'Продажи', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+          'эквайринг': { label: 'Эквайринг', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+          'реклама': { label: 'Реклама', color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' },
+          'агентские': { label: 'Агентские', color: 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200' },
+          'доставка': { label: 'Доставка', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+          'прочее': { label: 'Прочее', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+        };
+        
+        const categoryInfo = categoryMap[value] || categoryMap['прочее'];
+        
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${categoryInfo.color}`}>
+            {categoryInfo.label}
+          </span>
+        );
+      },
     },
   ];
 
@@ -161,7 +139,8 @@ export const TransactionsPage: React.FC = () => {
   };
 
   const handleCategoryFilterChange = (category: string) => {
-    updateTableState({ categoryFilter: category, page: 0 });
+    // Remove category filter functionality as requested
+    console.log('Category filter removed');
   };
 
   return (
@@ -170,7 +149,7 @@ export const TransactionsPage: React.FC = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Детализация</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Детальная информация по всем финансовым операциям с возможностью поиска и фильтрации
+          Выписка Ozon: operation_date, operation_type_name, posting_number, accruals_for_sale, sale_commission, amount
         </p>
       </div>
 
@@ -190,12 +169,12 @@ export const TransactionsPage: React.FC = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center gap-3">
-            <Hash className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <Calendar className="w-8 h-8 text-purple-600 dark:text-purple-400" />
             <div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {formatNumber(categories?.length || 0)}
+                По финансовым данным (ТЗ)
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Категорий</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Источник: finance_transactions</div>
             </div>
           </div>
         </div>
@@ -225,40 +204,8 @@ export const TransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Filter */}
-      {categories && categories.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Фильтр по категории:</span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => handleCategoryFilterChange('')}
-                className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                  tableState.categoryFilter === ''
-                    ? 'bg-ozon-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                Все
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleCategoryFilterChange(category)}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                    tableState.categoryFilter === category
-                      ? 'bg-ozon-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  {CATEGORY_LABELS[category] || category}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Category Filter - Removed as requested */}
+      
       {/* Transactions Table */}
       <DataTable<TransactionDetail>
         columns={columns}

@@ -1,12 +1,14 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useFinanceData } from '../../hooks/useFinanceData';
+import { useFinanceCostAnalysis } from '../../hooks/useFinanceCostAnalysis';
 import { formatCurrency, formatPercentage } from '../../lib/format';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ErrorMessage } from '../ui/ErrorMessage';
 
 export const FinancePieChart: React.FC = () => {
   const { data, isLoading, error, refetch } = useFinanceData();
+  const { data: costAnalysis } = useFinanceCostAnalysis();
 
   if (isLoading) {
     return (
@@ -29,7 +31,7 @@ export const FinancePieChart: React.FC = () => {
     );
   }
 
-  if (!data || data.categories.length === 0) {
+  if (!data || data.categories.length === 0 || !costAnalysis) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="text-center text-gray-500 dark:text-gray-400 py-12">
@@ -38,6 +40,29 @@ export const FinancePieChart: React.FC = () => {
       </div>
     );
   }
+
+  // Создаем расширенные данные с чистой прибылью и себестоимостью
+  const netProfit = data.summary.totalIncome - data.summary.totalExpenses - costAnalysis.totalCostPrice;
+  const totalAmount = data.summary.totalIncome + data.summary.totalExpenses + costAnalysis.totalCostPrice + Math.abs(netProfit);
+  
+  const enhancedCategories = [
+    ...data.categories.map(cat => ({
+      ...cat,
+      percentage: (cat.amount / totalAmount) * 100
+    })),
+    {
+      category: 'Чистая прибыль',
+      amount: Math.abs(netProfit),
+      percentage: (Math.abs(netProfit) / totalAmount) * 100,
+      color: netProfit >= 0 ? '#10b981' : '#ef4444'
+    },
+    {
+      category: 'Себестоимость',
+      amount: costAnalysis.totalCostPrice,
+      percentage: (costAnalysis.totalCostPrice / totalAmount) * 100,
+      color: '#8b5cf6'
+    }
+  ].filter(cat => cat.amount > 0);
 
   const renderCustomTooltip = (props: any) => {
     if (props.active && props.payload && props.payload.length > 0) {
@@ -79,7 +104,7 @@ export const FinancePieChart: React.FC = () => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data.categories}
+                data={enhancedCategories}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -88,7 +113,7 @@ export const FinancePieChart: React.FC = () => {
                 fill="#8884d8"
                 dataKey="amount"
               >
-                {data.categories.map((entry, index) => (
+                {enhancedCategories.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -102,7 +127,7 @@ export const FinancePieChart: React.FC = () => {
           {/* Categories Legend */}
           <div className="space-y-3">
             <h3 className="font-medium text-gray-900 dark:text-gray-100">Категории</h3>
-            {data.categories.map((category, index) => (
+            {enhancedCategories.map((category, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div 
@@ -141,12 +166,19 @@ export const FinancePieChart: React.FC = () => {
               </span>
             </div>
             
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600 dark:text-gray-400">Себестоимость:</span>
+              <span className="font-medium text-purple-600 dark:text-purple-400">
+                {formatCurrency(costAnalysis.totalCostPrice)}
+              </span>
+            </div>
+            
             <div className="flex justify-between text-sm pt-2 border-t border-gray-100 dark:border-gray-600">
               <span className="font-medium text-gray-900 dark:text-gray-100">Чистая прибыль:</span>
               <span className={`font-bold ${
-                data.summary.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
               }`}>
-                {formatCurrency(data.summary.netProfit)}
+                {formatCurrency(netProfit)}
               </span>
             </div>
           </div>

@@ -14,7 +14,7 @@ export interface ProductPerformance {
   gmv: number;
   revenue: number;
   commissions: number;
-  netProfit: number;
+  netProfit: number | null; // Temporarily null as requested
   avgPrice: number;
 }
 
@@ -35,7 +35,7 @@ const transformProductData = (item: any): ProductPerformance => ({
   gmv: toNumber(item.delivered_gmv),
   revenue: toNumber(item.delivered_revenue),
   commissions: Math.abs(toNumber(item.delivered_commissions)),
-  netProfit: toNumber(item.delivered_revenue) - Math.abs(toNumber(item.delivered_commissions)),
+  netProfit: null, // Temporarily disabled - will be implemented later
   avgPrice: toNumber(item.avg_price),
 });
 

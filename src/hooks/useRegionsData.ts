@@ -11,7 +11,7 @@ export interface RegionPerformance {
   gmv: number;
   revenue: number;
   commissions: number;
-  netProfit: number;
+  netProfit: number | null; // Temporarily null as requested
   avgOrderValue: number;
 }
 
@@ -22,7 +22,7 @@ const transformRegionData = (item: any): RegionPerformance => ({
   gmv: toNumber(item.delivered_gmv),
   revenue: toNumber(item.delivered_revenue),
   commissions: Math.abs(toNumber(item.delivered_commissions)),
-  netProfit: toNumber(item.delivered_revenue) - Math.abs(toNumber(item.delivered_commissions)),
+  netProfit: null, // Temporarily disabled - will be implemented later
   avgOrderValue: toNumber(item.delivered_orders) > 0 
     ? toNumber(item.delivered_gmv) / toNumber(item.delivered_orders) 
     : 0,
