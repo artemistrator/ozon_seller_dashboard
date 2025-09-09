@@ -119,7 +119,7 @@ const transformSalesMetrics = (data: any): SalesMetrics => {
   
   // Net profit is already calculated correctly in RPC as payout
   // Net profit - temporarily disabled as requested (replaced with dash)
-  const netProfit = null; // Will be implemented later
+  // const netProfit = null; // Will be implemented later
   
   const result = {
     totalOrders: toNumber(data.total_orders),

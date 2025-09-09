@@ -138,10 +138,10 @@ export const TransactionsPage: React.FC = () => {
     updateTableState({ search, page: 0 });
   };
 
-  const handleCategoryFilterChange = (category: string) => {
-    // Remove category filter functionality as requested
-    console.log('Category filter removed');
-  };
+  // Removed category filter functionality as requested
+  // const handleCategoryFilterChange = (category: string) => {
+  //   console.log('Category filter removed');
+  // };
 
   return (
     <div className="space-y-6">

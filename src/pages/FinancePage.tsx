@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, Activity, Calculator } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Calculator } from 'lucide-react';
 import { FinancePieChart } from '../components/charts/FinancePieChart';
 import { NetProfitChart } from '../components/charts/NetProfitChart';
 import { StatCard } from '../components/ui/StatCard';

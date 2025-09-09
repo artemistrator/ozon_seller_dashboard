@@ -1,284 +1,306 @@
-# 🚀 Ozon Seller Dashboard
+# 🛍️ Ozon FBS Analytics Dashboard
 
-## 📊 Аналитический дашборд для продавцов Ozon FBS
+**Professional analytics dashboard for Ozon FBS sellers with comprehensive financial analysis, cost management, and real-time insights.**
 
-Комплексное веб-приложение для анализа эффективности продаж на маркетплейсе Ozon по модели Fulfilled By Seller (FBS). Предоставляет детальную аналитику продаж, финансов, себестоимости и прибыльности в реальном времени.
+![Dashboard Preview](https://img.shields.io/badge/Status-Production%20Ready-green) ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue) ![Supabase](https://img.shields.io/badge/Database-Supabase-green)
 
-![Dashboard Preview](https://via.placeholder.com/800x400?text=Ozon+Analytics+Dashboard)
+## ✨ Key Features
 
-## ✨ Основные возможности
+### 📊 Financial Analytics
+- **Real-time financial tracking** with automatic transaction categorization
+- **Advanced profitability analysis** including cost of goods sold (COGS)
+- **Interactive financial structure** with pie charts and breakdowns
+- **Net profit visualization** with optional 6% tax calculations
+- **Category-based expense analysis** (Sales, Commissions, Advertising, Delivery, etc.)
+- **Financial operations** based on actual transaction dates
 
-### 📈 **Вкладка "Продажи"**
-- Интерактивные графики GMV, заказов, единиц
-- Сравнение с предыдущими периодами
-- Анализ себестоимости и чистой прибыли
-- Фильтрация по дате доставки/отгрузки/заказа
-- Опция учета 6% налога ИП
+### 📈 Sales Analytics
+- **Daily sales performance** tracking with trend analysis
+- **GMV vs Revenue** detailed comparison and metrics
+- **Regional performance** breakdown with geographic insights
+- **Order completion** rates and fulfillment analytics
+- **Average order value** tracking and optimization
 
-### 💰 **Вкладка "Финансы"**
-- Полный финансовый учет по операциям Ozon
-- Категоризация расходов (комиссии, доставка, реклама, эквайринг)
-- Расчет чистой прибыли с учетом всех расходов и себестоимости
-- Круговые диаграммы распределения затрат
-- Детализация финансовых операций
+### 🏷️ Product Management
+- **SKU-level performance** analysis with profitability rankings
+- **Dynamic cost price management** with real-time editing interface
+- **Automated profit margin** calculations and monitoring
+- **Product profitability** insights and recommendations
+- **Cost analysis** integration across all metrics
 
-### 🏷️ **Вкладка "Себестоимость"**
-- Управление себестоимостью товаров
-- Inline-редактирование стоимости
-- Автоматическое получение цен из отгрузок
-- Поиск и фильтрация товаров
-- Статистика по заполненности данных
+### 🌍 Regional Analytics
+- **Geographic performance** breakdown by delivery regions
+- **Regional profitability** analysis and comparisons
+- **Order distribution** patterns across different areas
+- **Regional growth** trends and insights
 
-### 📦 **Вкладка "По товарам"**
-- SKU-уровневый анализ прибыльности
-- Фильтрация и сортировка товаров
-- Расчет маржинальности по товарам
-- Анализ топ-товаров по выручке
+### 🔍 Transaction Details
+- **Transaction-level** detailed view and filtering
+- **Financial operation** categorization and analysis
+- **Historical transaction** tracking and search
+- **Detailed financial** breakdowns by operation type
 
-### 🗺️ **Вкладка "По регионам"**
-- Географический анализ продаж
-- Рейтинг регионов по выручке
-- Региональная прибыльность
+## 🛠️ Tech Stack
 
-### 📋 **Вкладка "Детализация"**
-- Подробная таблица всех операций
-- Поиск и фильтрация транзакций
-- Экспорт данных
-- Категоризация операций
+**Frontend**:
+- ⚛️ **React 18** with TypeScript for type safety
+- ⚡ **Vite** for lightning-fast development
+- 🎨 **TailwindCSS** for modern, responsive styling
+- 📊 **Recharts** for beautiful data visualizations
+- 🎭 **Lucide Icons** for consistent iconography
 
-## 🛠️ Технологический стек
+**State & Data Management**:
+- 🔄 **TanStack Query** for server state management
+- 🐻 **Zustand** for client state management
+- 🌐 **React Router v6** for navigation
 
-### **Frontend**
-- **React 18** + **TypeScript** - современный UI
-- **Vite** - быстрая сборка и разработка
-- **TailwindCSS** - стилизация
-- **React Query 5** - управление состоянием и кэширование
-- **React Router** - навигация
-- **Recharts 2.8** - интерактивные графики
-- **Lucide React** - иконки
+**Backend & Database**:
+- 🗄️ **Supabase** (PostgreSQL) for robust data storage
+- 🔐 **Row Level Security** for data protection
+- ⚡ **Real-time subscriptions** for live updates
+- 🔧 **Custom RPC functions** for complex analytics
 
-### **Backend & Database**
-- **Supabase (PostgreSQL)** - база данных как сервис
-- **Кастомные представления** для оптимизации запросов
-- **RPC функции** для сложных расчетов
-- **Реал-тайм синхронизация** данных
+## 🚀 Quick Deploy
 
-### **Дополнительные возможности**
-- **Московское время** - корректная обработка временных зон
-- **URL-синхронизация фильтров** - делимые ссылки на состояния
-- **Адаптивный дизайн** - поддержка мобильных устройств
-- **Темная тема** - переключение светлой/темной темы
+### Option 1: Deploy to Vercel (Recommended)
 
-## 🚀 Быстрый старт
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fartemistrator%2Fozon_seller_dashboard&env=VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY)
 
-### **Предварительные требования**
-- Node.js 18+ ([скачать](https://nodejs.org/))
-- npm (поставляется с Node.js)
-- Аккаунт Supabase ([создать бесплатно](https://supabase.com))
+1. Click the deploy button above
+2. Connect your GitHub account
+3. Set environment variables:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+4. Deploy!
 
-### **1. Клонирование репозитория**
+### Option 2: Deploy to Netlify
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/artemistrator/ozon_seller_dashboard)
+
+1. Click the deploy button above
+2. Connect your GitHub account  
+3. Set build settings:
+   - **Build command**: `npm run build`
+   - **Publish directory**: `dist`
+4. Set environment variables in Netlify dashboard
+5. Deploy!
+
+## 🏗️ Local Development
+
+### Prerequisites
+- **Node.js 18+** and npm
+- **Supabase account** (free tier available)
+
+### Installation
+
 ```bash
+# Clone the repository
 git clone https://github.com/artemistrator/ozon_seller_dashboard.git
 cd ozon_seller_dashboard
-```
 
-### **2. Установка зависимостей**
-```bash
+# Install dependencies
 npm install
-```
 
-### **3. Настройка окружения**
-Создайте файл `.env` в корне проекта:
-```bash
+# Setup environment variables
 cp .env.example .env
-```
+# Edit .env with your Supabase credentials
 
-Заполните переменные окружения в `.env`:
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### **4. Настройка базы данных**
-1. Создайте новый проект в [Supabase](https://supabase.com)
-2. Выполните SQL-скрипты из папки `database/` для создания таблиц:
-   - `01_create_tables.sql` - основные таблицы
-   - `02_create_views.sql` - представления для аналитики
-   - `03_create_functions.sql` - RPC функции
-
-### **5. Импорт данных**
-Загрузите ваши данные Ozon в созданные таблицы:
-- `postings_fbs` - данные отгрузок FBS
-- `finance_transactions` - финансовые операции
-- `finance_transaction_items` - детали по товарам
-- `finance_transaction_services` - детали по услугам
-
-### **6. Запуск приложения**
-```bash
+# Start development server
 npm run dev
 ```
 
-Откройте [http://localhost:5173](http://localhost:5173) в браузере.
+## 🗄️ Database Setup
 
-## 📊 Структура данных
+### 1. Create Supabase Project
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Wait for the project to be ready (2-3 minutes)
+3. Go to **Settings > API** to get your credentials
 
-### **Основные таблицы**
+### 2. Run Database Scripts
+Execute these SQL scripts in your Supabase SQL Editor **in order**:
+
 ```sql
-postings_fbs           -- Отгрузки FBS (манagerial учет)
-finance_transactions   -- Финансовые операции (financial учет)
-finance_transaction_items    -- Детали по товарам в операциях
-finance_transaction_services -- Детали по услугам в операциях
-product_costs         -- Себестоимость товаров (пользовательские данные)
-map_operation_types   -- Маппинг типов операций (опционально)
+-- 1. Create tables (required)
+-- Run: database/01_create_tables.sql
+
+-- 2. Create views (required)
+-- Run: database/02_create_views.sql
+
+-- 3. Create functions (required)
+-- Run: database/03_create_functions.sql
 ```
 
-### **Ключевые поля**
-- **postings_fbs**: `sku`, `offer_id`, `product_name`, `quantity`, `price`, `payout`, `shipment_date`, `delivering_date`
-- **finance_transactions**: `operation_date`, `operation_type`, `operation_type_name`, `amount`, `accruals_for_sale`, `sale_commission`
-- **product_costs**: `sku`, `offer_id`, `cost_price` (редактируется пользователем)
+### 3. Environment Configuration
 
-## 🎯 Как пользоваться
+Update your `.env` file:
 
-### **Навигация по вкладкам**
-1. **Продажи** - общий обзор продаж и трендов
-2. **По товарам** - анализ отдельных SKU
-3. **По регионам** - географическая аналитика
-4. **Финансы** - финансовый учет и P&L
-5. **Детализация** - подробные транзакции
-6. **Себестоимость** - управление затратами
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-### **Фильтры дат**
-- **По дате доставки** - когда товар доставлен покупателю
-- **По дате отгрузки** - когда товар отправлен со склада
-- **По дате заказа** - когда заказ поступил в обработку
+## 📊 Database Schema Overview
 
-### **Управление себестоимостью**
-1. Перейдите на вкладку "Себестоимость"
-2. Найдите нужный товар через поиск
-3. Нажмите на иконку редактирования ✏️
-4. Введите себестоимость в рублях
-5. Нажмите ✅ для сохранения
+### Core Tables
+- **`postings_fbs`** - Ozon FBS posting data with comprehensive metrics
+- **`finance_transactions`** - Detailed financial transaction records
+- **`product_costs`** - Product cost price management and tracking
 
-### **Анализ прибыльности**
-- Во вкладках "Продажи" и "Финансы" используйте галочку "Учитывать 6% налог"
-- Чистая прибыль рассчитывается как: `Доходы - Расходы - Себестоимость`
-- Цветовая индикация: 🟢 прибыль, 🔴 убытки
+### Analytical Views
+- **`vw_daily_sales`** - Daily sales performance aggregation
+- **`vw_products_performance`** - Product-level analytics with profitability
+- **`vw_regions_performance`** - Regional performance breakdown
+- **`vw_finance_breakdown`** - Financial categorization and analysis
+- **`vw_cost_analysis`** - Cost analysis and margin calculations
 
-## 🔧 Команды разработки
+### RPC Functions
+- **`get_sales_metrics_by_date_type_correct`** - Advanced sales analytics
+- **`get_finance_summary`** - Comprehensive financial summary
+- **`get_products_performance`** - Product performance with pagination
+- **`get_regions_performance`** - Regional analytics with sorting
+
+## 💡 Key Formulas
+
+### Financial Calculations
+
+**Profitability**:
+```typescript
+Profitability = (Total Income - Total Expenses - Cost of Goods Sold) / Total Income × 100
+```
+
+**Net Profit**:
+```typescript
+Net Profit = Total Income - Total Expenses - Cost of Goods Sold
+Net Profit (after 6% tax) = Net Profit × 0.94
+```
+
+**Margin Analysis**:
+```typescript
+Margin = (Selling Price - Cost Price) / Selling Price × 100
+```
+
+## 🎯 Feature Highlights
+
+### 🔄 Real-time Cost Management
+- Edit product cost prices directly in the interface
+- Automatic profit recalculation across all analytics
+- Historical cost tracking with timestamps
+
+### 📅 Flexible Date Filtering
+- **Delivery Date** - When customer received the order
+- **Shipment Date** - When order was shipped from warehouse
+- **Order Date** - When order was initially created
+- **Financial Operations** - Based on actual transaction dates
+
+### 📱 Responsive Design
+- 🖥️ **Desktop** (1920px+) - Full analytics dashboard
+- 💻 **Laptop** (1024px+) - Optimized layout
+- 📱 **Tablet** (768px+) - Touch-friendly interface
+- 📱 **Mobile** (375px+) - Mobile-optimized views
+
+### 🌙 Theme Support
+- **Light/Dark mode** with system preference detection
+- **Consistent styling** across all components
+- **Accessibility focused** with proper contrast ratios
+
+## 🚀 Production Deployment
+
+### Build Optimization
 
 ```bash
-# Разработка
-npm run dev
-
-# Сборка для продакшена
+# Build for production
 npm run build
 
-# Предварительный просмотр сборки
+# Preview production build locally
 npm run preview
 
-# Проверка типов и стиля кода
+# Lint code
 npm run lint
 ```
 
-## 📁 Структура проекта
+### Environment Variables for Production
 
-```
-ozon_seller_dashboard/
-├── src/
-│   ├── components/          # Переиспользуемые компоненты
-│   │   ├── charts/         # Компоненты графиков
-│   │   ├── layout/         # Layout компоненты
-│   │   └── ui/             # UI компоненты
-│   ├── hooks/              # Кастомные React хуки
-│   ├── lib/                # Утилиты и конфигурация
-│   ├── pages/              # Страницы приложения
-│   └── contexts/           # React контексты
-├── database/               # SQL скрипты для БД
-├── docs/                   # Документация
-└── public/                 # Статические файлы
-```
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_SUPABASE_URL` | ✅ | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | ✅ | Supabase anonymous/public key |
 
-## 🔐 Безопасность
+### Performance Features
+- 🔄 **React Query caching** for optimal data fetching
+- 📦 **Code splitting** with lazy loading
+- 🗜️ **Bundle optimization** with Vite
+- 📊 **Efficient re-renders** with optimized dependencies
 
-- Используется Supabase анонимный ключ для клиентского доступа
-- Доступ к данным контролируется через Row Level Security (RLS)
-- Переменные окружения для чувствительных данных
-- Нет прямого доступа к базе данных из frontend
+## 🔧 Maintenance & Updates
 
-## 📈 Особенности расчетов
+### Database Maintenance
+- **Regular backups** through Supabase dashboard
+- **Index optimization** for large datasets
+- **Query performance** monitoring
 
-### **Финансовая логика**
-- **Managerial учет** (вкладки Продажи/Товары/Регионы): данные из `postings_fbs`
-- **Financial учет** (вкладки Финансы/Детализация): данные из `finance_transactions`
-- **Себестоимость**: из таблицы `product_costs` с связкой по SKU
+### Application Updates
+- **Dependency updates** with `npm update`
+- **Security patches** through automated alerts
+- **Feature additions** through GitHub releases
 
-### **Формулы**
-```
-GMV = SUM(price_total)
-Выручка = SUM(payout)
-Чистая прибыль = Общий доход - Общие расходы - Себестоимость
-Налог 6% = Чистая прибыль × 0.06 (опционально)
-```
+## 🆘 Troubleshooting
 
-## 🎨 Кастомизация
+### Common Issues
 
-### **Темы**
-Переключайте между светлой и темной темой через иконку в сайдбаре.
-
-### **Фильтры**
-Все фильтры синхронизируются с URL - вы можете делиться ссылками на конкретные состояния дашборда.
-
-### **Период анализа**
-Выбирайте любой диапазон дат через календарь в верхней части страницы.
-
-## 🔄 Обновление данных
-
-1. **Автоматическое**: данные кэшируются на 5 минут и обновляются автоматически
-2. **Ручное**: используйте кнопки обновления или перезагрузите страницу
-3. **Реал-тайм**: изменения себестоимости сохраняются мгновенно
-
-## 🐛 Устранение неполадок
-
-### **Приложение не запускается**
+**Build Failures**:
 ```bash
-# Проверьте версию Node.js
-node --version  # должно быть 18+
-
-# Переустановите зависимости
+# Clear cache and reinstall
 rm -rf node_modules package-lock.json
 npm install
+
+# Check TypeScript errors
+npm run lint
 ```
 
-### **Ошибки загрузки данных**
-1. Проверьте переменные окружения в `.env`
-2. Убедитесь, что Supabase проект активен
-3. Проверьте настройки RLS в Supabase
+**Database Connection Issues**:
+- Verify Supabase URL and key in `.env`
+- Check if database scripts ran successfully
+- Ensure RPC functions are properly created
 
-### **Пустые графики**
-1. Убедитесь, что данные загружены в таблицы
-2. Проверьте выбранный диапазон дат
-3. Проверьте консоль браузера на ошибки
+**Performance Issues**:
+- Monitor Supabase dashboard for usage
+- Check browser developer tools for errors
+- Optimize database queries if needed
 
-## 📞 Поддержка
+## 📚 Data Import Guide
 
-При возникновении проблем:
-1. Проверьте [Issues](https://github.com/artemistrator/ozon_seller_dashboard/issues)
-2. Создайте новый Issue с подробным описанием
-3. Приложите скриншоты и логи из консоли
+To use the dashboard with your Ozon data:
 
-## 📄 Лицензия
+1. **Export data** from Ozon Seller Portal
+2. **Transform data** to match the database schema
+3. **Import data** using Supabase dashboard or API
+4. **Verify data** through the dashboard analytics
 
-MIT License - см. файл [LICENSE](LICENSE)
+*Detailed data import guide available in the `/docs` folder.*
 
-## 🙏 Благодарности
+## 🤝 Contributing
 
-- **Ozon** за предоставление API и данных
-- **Supabase** за отличную BaaS платформу  
-- **React** и **TypeScript** сообщества
-- Всем контрибьюторам проекта
+We welcome contributions! Please:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 🌟 Support
+
+- 🐛 **Bug reports**: [Create an issue](https://github.com/artemistrator/ozon_seller_dashboard/issues)
+- 💡 **Feature requests**: [Discussions](https://github.com/artemistrator/ozon_seller_dashboard/discussions)
+- 📖 **Documentation**: Check `/docs` folder
+- 💬 **Community support**: GitHub Discussions
 
 ---
 
-**🎯 Создано для эффективного управления продажами на Ozon FBS**
+**⭐ If this project helps you, please give it a star on GitHub!**
 
-⭐ Поставьте звезду, если проект оказался полезным!
+**Built with ❤️ for Ozon FBS sellers to maximize their business insights and profitability.**
